@@ -41,3 +41,6 @@ void write_mailbox_x(volatile mailbox_t *mbox, unsigned channel) {
     cp.pointer = 0;
     mbox->write = ((unsigned)(&cp) | channel | 0x40000000);
 }
+
+// 5 is correct and 4 in incorrect
+// because 4 doesn't have volatile so the compiler might reorder the assignments

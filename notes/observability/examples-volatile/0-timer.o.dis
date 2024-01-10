@@ -1,0 +1,28 @@
+
+0-timer.o:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <mul>:
+// 2. do the multiply
+// 3. read clock at address 0x20003004
+// 4. write the diff.
+//
+// what happens?
+int mul(int *time, int a, int b) {
+   0:	e1a03000 	mov	r3, r0
+
+	int c = a * b;
+
+    unsigned end = *(unsigned *) 0x20003004;
+
+	*time = end - start;
+   4:	e3a0c000 	mov	ip, #0, 0
+	return c;
+}
+   8:	e0000192 	mul	r0, r2, r1
+	*time = end - start;
+   c:	e583c000 	str	ip, [r3]
+}
+  10:	e12fff1e 	bx	lr

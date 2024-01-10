@@ -1,0 +1,35 @@
+
+1-timer-fix.o:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <mul>:
+// simple routine to time multiplication.
+int mul(int *time, int *out, int a, int b) {
+	volatile unsigned *timer = (void*)0x20003004;
+
+	unsigned start = *timer;
+   0:	e59fc01c 	ldr	ip, [pc, #28]	; 24 <mul+0x24>
+int mul(int *time, int *out, int a, int b) {
+   4:	e52de004 	push	{lr}		; (str lr, [sp, #-4]!)
+	unsigned start = *timer;
+   8:	e59ce004 	ldr	lr, [ip, #4]
+        asm volatile ("" : : : "memory");
+		// change to *out
+		int c = a * b;
+        asm volatile ("" : : : "memory");
+
+	unsigned end = *timer;
+   c:	e59c1004 	ldr	r1, [ip, #4]
+
+	*time = end - start;
+  10:	e041100e 	sub	r1, r1, lr
+  14:	e5801000 	str	r1, [r0]
+	
+	return c;
+}
+  18:	e49de004 	pop	{lr}		; (ldr lr, [sp], #4)
+  1c:	e0000293 	mul	r0, r3, r2
+  20:	e12fff1e 	bx	lr
+  24:	20003000 	.word	0x20003000

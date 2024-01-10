@@ -1,0 +1,26 @@
+
+1-timer.o:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <mul>:
+// simple routine to measure cost of multiplication.
+// if you look at machine code: what happened to
+// our measurement?
+int mul(int *time, int a, int b) {
+   0:	e1a03000 	mov	r3, r0
+
+    // read usec timer
+	unsigned end = *(unsigned *) 0x20003004;
+
+    // compute how many usec.
+	*time = end - start;
+   4:	e3a0c000 	mov	ip, #0, 0
+	return c;
+}
+   8:	e0000192 	mul	r0, r2, r1
+	*time = end - start;
+   c:	e583c000 	str	ip, [r3]
+}
+  10:	e12fff1e 	bx	lr
