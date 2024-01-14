@@ -6,7 +6,7 @@ int main(void) {
     // put your code here.
     printf("char prog[] = {\n");
     int global_i = 0;
-    char program[1000];
+    char program[100000];
     char c; int ret;
     while (((ret = scanf("%c", &c)) == 1)) {
         program[global_i] = c;
