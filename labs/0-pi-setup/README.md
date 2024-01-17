@@ -67,7 +67,7 @@ details).
         no pi program
         ...
 
-2. Setup the `140E_CS140E_2024` environment variable to the location of 
+2. Setup the `CS140E_2024_PATH` environment variable to the location of 
    the class repo.  `make` in `checkoff` should succeed.
 
 If that worked, you're good to go!  If not see the [HINTS](./HINTS.md)
@@ -430,6 +430,13 @@ Similar to how you added your local `~/bin` directory to your shell's path
 on the first lab, today you're going to edit your shell configuration file
 (e.g., `.tcshrc`, `.bash_profile`, etc) to set an environment variable
 `CS140E_2024_PATH` to contain where you have your class repository.
+
+
+NOTE: 
+  - Do not put the class repo in a directory has a space!
+    This will break various things with unclear errors.  This happened
+    to a few MacOS users.
+
 
 E.g., for me, since I'm running `tcsh` I edit my `.tcshrc` file and add:
 
