@@ -11,7 +11,7 @@ void notmain(void) {
     hc_sr04_t h = hc_sr04_init(trigger_pin, echo_pin);
 	printk("sonar ready!\n");
 
-    for(int dist, ntimeout = 0, i = 0; i < 10; i++) {
+    for(int dist, ntimeout = 0, i = 0; i < 100; i++) {
         int dist;
         // read until no timeout.
         while((dist = hc_sr04_get_distance(h, timeout)) < 0)

@@ -108,9 +108,17 @@ void gpio_set_input(unsigned pin) {
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
+  if(pin >= 32)
+    return 0;
+
   unsigned v = 0;
   // implement.
-  volatile unsigned *gpio_lev0_ = (volatile unsigned *)gpio_lev0;
-  v = (*gpio_lev0_ >> pin) & 0x1;
+  // volatile unsigned *gpio_lev0_ = (volatile unsigned *)gpio_lev0;
+  int all_values = GETx32(gpio_lev0);
+  v = (all_values >> pin) & 0x1;
   return v;
+
+  // volatile unsigned *gpio_clr0_ = (volatile unsigned *)gpio_clr0;
+  // *gpio_clr0_ = (1 << pin);
+
 }

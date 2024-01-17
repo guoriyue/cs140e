@@ -214,3 +214,9 @@ More links:
 <p align="center">
   <img src="images/led-breaker.jpg" width="450" />
 </p>
+
+
+
+## Commands for my laptop
+
+./pi-install.macos ../labs/3-gpio/staff-binaries/hello.bin 
