@@ -31,6 +31,22 @@ void gpio_set_output(unsigned pin) {
 
   // implement this
   // use <gpio_fsel0>
+  if(pin <= 9){
+    volatile unsigned *gpio_fsel0 = (volatile unsigned *)GPIO_BASE;
+    int mask = 0b00000111;
+    int shift = pin * 3;
+    *gpio_fsel0 = (*gpio_fsel0 & ~(mask << shift)) | (1 << shift);
+  }else if (pin <= 19){
+    volatile unsigned *gpio_fsel1 = (volatile unsigned *) (GPIO_BASE + 0x04);
+    int mask = 0b00000111;
+    int shift = (pin - 10) * 3;
+    *gpio_fsel1 = (*gpio_fsel1 & ~(mask << shift)) | (1 << shift);
+  }else if (pin <= 29){
+    volatile unsigned *gpio_fsel2 = (volatile unsigned *) (GPIO_BASE + 0x08);
+    int mask = 0b00000111;
+    int shift = (pin - 20) * 3;
+    *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift)) | (1 << shift);
+  }  
 }
 
 // set GPIO <pin> on.
@@ -39,6 +55,8 @@ void gpio_set_on(unsigned pin) {
         return;
   // implement this
   // use <gpio_set0>
+  volatile unsigned *gpio_set0_ = (volatile unsigned *)gpio_set0;
+  *gpio_set0_ = (1 << pin);
 }
 
 // set GPIO <pin> off
@@ -47,6 +65,8 @@ void gpio_set_off(unsigned pin) {
         return;
   // implement this
   // use <gpio_clr0>
+  volatile unsigned *gpio_clr0_ = (volatile unsigned *)gpio_clr0;
+  *gpio_clr0_ = (1 << pin);
 }
 
 // set <pin> to <v> (v \in {0,1})
@@ -63,13 +83,34 @@ void gpio_write(unsigned pin, unsigned v) {
 
 // set <pin> to input.
 void gpio_set_input(unsigned pin) {
+  
   // implement.
+  if(pin >= 32)
+    return;
+
+  if(pin <= 9){
+    volatile unsigned *gpio_fsel0 = (volatile unsigned *)GPIO_BASE;
+    int mask = 0b00000111;
+    int shift = pin * 3;
+    *gpio_fsel0 = (*gpio_fsel0 & ~(mask << shift));
+  }else if (pin <= 19){
+    volatile unsigned *gpio_fsel1 = (volatile unsigned *) (GPIO_BASE + 0x04);
+    int mask = 0b00000111;
+    int shift = (pin - 10) * 3;
+    *gpio_fsel1 = (*gpio_fsel1 & ~(mask << shift));
+  }else if (pin <= 29){
+    volatile unsigned *gpio_fsel2 = (volatile unsigned *) (GPIO_BASE + 0x08);
+    int mask = 0b00000111;
+    int shift = (pin - 20) * 3;
+    *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift));
+  }  
 }
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
   unsigned v = 0;
-
   // implement.
+  volatile unsigned *gpio_lev0_ = (volatile unsigned *)gpio_lev0;
+  v = (*gpio_lev0_ >> pin) & 0x1;
   return v;
 }

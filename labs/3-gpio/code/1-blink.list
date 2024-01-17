@@ -1,0 +1,214 @@
+
+1-blink.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00008000 <_start>:
+    8000:	e3a0d302 	mov	sp, #134217728	; 0x8000000
+    8004:	eb000005 	bl	8020 <notmain>
+
+00008008 <hang>:
+    8008:	eafffffe 	b	8008 <hang>
+
+0000800c <PUT32>:
+    800c:	e5801000 	str	r1, [r0]
+    8010:	e12fff1e 	bx	lr
+
+00008014 <GET32>:
+    8014:	e5900000 	ldr	r0, [r0]
+    8018:	e12fff1e 	bx	lr
+
+0000801c <nop>:
+    801c:	e12fff1e 	bx	lr
+
+00008020 <notmain>:
+    8020:	e92d4070 	push	{r4, r5, r6, lr}
+    8024:	e3a00014 	mov	r0, #20, 0
+    8028:	eb00000e 	bl	8068 <gpio_set_output>
+    802c:	e3a0400a 	mov	r4, #10, 0
+    8030:	e3a06014 	mov	r6, #20, 0
+    8034:	e59f5028 	ldr	r5, [pc, #40]	; 8064 <notmain+0x44>
+    8038:	e1a00006 	mov	r0, r6
+    803c:	eb00002f 	bl	8100 <gpio_set_on>
+    8040:	e1a00005 	mov	r0, r5
+    8044:	eb000068 	bl	81ec <delay_cycles>
+    8048:	e1a00006 	mov	r0, r6
+    804c:	eb000032 	bl	811c <gpio_set_off>
+    8050:	e1a00005 	mov	r0, r5
+    8054:	eb000064 	bl	81ec <delay_cycles>
+    8058:	e2544001 	subs	r4, r4, #1, 0
+    805c:	1afffff5 	bne	8038 <notmain+0x18>
+    8060:	e8bd8070 	pop	{r4, r5, r6, pc}
+    8064:	000f4240 	andeq	r4, pc, r0, asr #4
+
+00008068 <gpio_set_output>:
+    8068:	e350001f 	cmp	r0, #31, 0
+    806c:	812fff1e 	bxhi	lr
+    8070:	e3500009 	cmp	r0, #9, 0
+    8074:	8a000008 	bhi	809c <gpio_set_output+0x34>
+    8078:	e0800080 	add	r0, r0, r0, lsl #1
+    807c:	e59f2078 	ldr	r2, [pc, #120]	; 80fc <gpio_set_output+0x94>
+    8080:	e5923000 	ldr	r3, [r2]
+    8084:	e3a01007 	mov	r1, #7, 0
+    8088:	e1c33011 	bic	r3, r3, r1, lsl r0
+    808c:	e3a01001 	mov	r1, #1, 0
+    8090:	e1830011 	orr	r0, r3, r1, lsl r0
+    8094:	e5820000 	str	r0, [r2]
+    8098:	e12fff1e 	bx	lr
+    809c:	e3500013 	cmp	r0, #19, 0
+    80a0:	8a000009 	bhi	80cc <gpio_set_output+0x64>
+    80a4:	e0800080 	add	r0, r0, r0, lsl #1
+    80a8:	e240001e 	sub	r0, r0, #30, 0
+    80ac:	e59f2048 	ldr	r2, [pc, #72]	; 80fc <gpio_set_output+0x94>
+    80b0:	e5923004 	ldr	r3, [r2, #4]
+    80b4:	e3a01007 	mov	r1, #7, 0
+    80b8:	e1c33011 	bic	r3, r3, r1, lsl r0
+    80bc:	e3a01001 	mov	r1, #1, 0
+    80c0:	e1830011 	orr	r0, r3, r1, lsl r0
+    80c4:	e5820004 	str	r0, [r2, #4]
+    80c8:	e12fff1e 	bx	lr
+    80cc:	e350001d 	cmp	r0, #29, 0
+    80d0:	812fff1e 	bxhi	lr
+    80d4:	e0800080 	add	r0, r0, r0, lsl #1
+    80d8:	e240003c 	sub	r0, r0, #60, 0	; 0x3c
+    80dc:	e59f2018 	ldr	r2, [pc, #24]	; 80fc <gpio_set_output+0x94>
+    80e0:	e5923008 	ldr	r3, [r2, #8]
+    80e4:	e3a01007 	mov	r1, #7, 0
+    80e8:	e1c33011 	bic	r3, r3, r1, lsl r0
+    80ec:	e3a01001 	mov	r1, #1, 0
+    80f0:	e1830011 	orr	r0, r3, r1, lsl r0
+    80f4:	e5820008 	str	r0, [r2, #8]
+    80f8:	e12fff1e 	bx	lr
+    80fc:	20200000 	eorcs	r0, r0, r0
+
+00008100 <gpio_set_on>:
+    8100:	e350001f 	cmp	r0, #31, 0
+    8104:	93a03001 	movls	r3, #1, 0
+    8108:	91a00013 	lslls	r0, r3, r0
+    810c:	959f3004 	ldrls	r3, [pc, #4]	; 8118 <gpio_set_on+0x18>
+    8110:	9583001c 	strls	r0, [r3, #28]
+    8114:	e12fff1e 	bx	lr
+    8118:	20200000 	eorcs	r0, r0, r0
+
+0000811c <gpio_set_off>:
+    811c:	e350001f 	cmp	r0, #31, 0
+    8120:	93a03001 	movls	r3, #1, 0
+    8124:	91a00013 	lslls	r0, r3, r0
+    8128:	959f3004 	ldrls	r3, [pc, #4]	; 8134 <gpio_set_off+0x18>
+    812c:	95830028 	strls	r0, [r3, #40]	; 0x28
+    8130:	e12fff1e 	bx	lr
+    8134:	20200000 	eorcs	r0, r0, r0
+
+00008138 <gpio_write>:
+    8138:	e92d4010 	push	{r4, lr}
+    813c:	e3510000 	cmp	r1, #0, 0
+    8140:	0a000001 	beq	814c <gpio_write+0x14>
+    8144:	ebffffed 	bl	8100 <gpio_set_on>
+    8148:	e8bd8010 	pop	{r4, pc}
+    814c:	ebfffff2 	bl	811c <gpio_set_off>
+    8150:	e8bd8010 	pop	{r4, pc}
+
+00008154 <gpio_set_input>:
+    8154:	e350001f 	cmp	r0, #31, 0
+    8158:	812fff1e 	bxhi	lr
+    815c:	e3500009 	cmp	r0, #9, 0
+    8160:	8a000006 	bhi	8180 <gpio_set_input+0x2c>
+    8164:	e59f2064 	ldr	r2, [pc, #100]	; 81d0 <gpio_set_input+0x7c>
+    8168:	e5923000 	ldr	r3, [r2]
+    816c:	e0800080 	add	r0, r0, r0, lsl #1
+    8170:	e3a01007 	mov	r1, #7, 0
+    8174:	e1c30011 	bic	r0, r3, r1, lsl r0
+    8178:	e5820000 	str	r0, [r2]
+    817c:	e12fff1e 	bx	lr
+    8180:	e3500013 	cmp	r0, #19, 0
+    8184:	8a000007 	bhi	81a8 <gpio_set_input+0x54>
+    8188:	e59f2040 	ldr	r2, [pc, #64]	; 81d0 <gpio_set_input+0x7c>
+    818c:	e5923004 	ldr	r3, [r2, #4]
+    8190:	e0800080 	add	r0, r0, r0, lsl #1
+    8194:	e240001e 	sub	r0, r0, #30, 0
+    8198:	e3a01007 	mov	r1, #7, 0
+    819c:	e1c30011 	bic	r0, r3, r1, lsl r0
+    81a0:	e5820004 	str	r0, [r2, #4]
+    81a4:	e12fff1e 	bx	lr
+    81a8:	e350001d 	cmp	r0, #29, 0
+    81ac:	812fff1e 	bxhi	lr
+    81b0:	e59f2018 	ldr	r2, [pc, #24]	; 81d0 <gpio_set_input+0x7c>
+    81b4:	e5923008 	ldr	r3, [r2, #8]
+    81b8:	e0800080 	add	r0, r0, r0, lsl #1
+    81bc:	e240003c 	sub	r0, r0, #60, 0	; 0x3c
+    81c0:	e3a01007 	mov	r1, #7, 0
+    81c4:	e1c30011 	bic	r0, r3, r1, lsl r0
+    81c8:	e5820008 	str	r0, [r2, #8]
+    81cc:	e12fff1e 	bx	lr
+    81d0:	20200000 	eorcs	r0, r0, r0
+
+000081d4 <gpio_read>:
+    81d4:	e59f300c 	ldr	r3, [pc, #12]	; 81e8 <gpio_read+0x14>
+    81d8:	e5933034 	ldr	r3, [r3, #52]	; 0x34
+    81dc:	e1a00033 	lsr	r0, r3, r0
+    81e0:	e2000001 	and	r0, r0, #1, 0
+    81e4:	e12fff1e 	bx	lr
+    81e8:	20200000 	eorcs	r0, r0, r0
+
+000081ec <delay_cycles>:
+    81ec:	e92d4010 	push	{r4, lr}
+    81f0:	e2404001 	sub	r4, r0, #1, 0
+    81f4:	e3500000 	cmp	r0, #0, 0
+    81f8:	08bd8010 	popeq	{r4, pc}
+    81fc:	ebffff86 	bl	801c <nop>
+    8200:	e2444001 	sub	r4, r4, #1, 0
+    8204:	e3740001 	cmn	r4, #1, 0
+    8208:	1afffffb 	bne	81fc <delay_cycles+0x10>
+    820c:	e8bd8010 	pop	{r4, pc}
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00002a41 	andeq	r2, r0, r1, asr #20
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	00000020 	andeq	r0, r0, r0, lsr #32
+  10:	4b5a3605 	blmi	168d82c <delay_cycles+0x1685640>
+  14:	08070600 	stmdaeq	r7, {r9, sl}
+  18:	12010901 	andne	r0, r1, #16384	; 0x4000
+  1c:	15011404 	strne	r1, [r1, #-1028]	; 0xfffffbfc
+  20:	18031701 	stmdane	r3, {r0, r8, r9, sl, ip}
+  24:	22011a01 	andcs	r1, r1, #4096	; 0x1000
+  28:	Address 0x0000000000000028 is out of bounds.
+
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347 	bcc	10d0d24 <delay_cycles+0x10c8b38>
+   4:	4e472820 	cdpmi	8, 4, cr2, cr7, cr0, {1}
+   8:	6f542055 	svcvs	0x00542055
+   c:	20736c6f 	rsbscs	r6, r3, pc, ror #24
+  10:	20726f66 	rsbscs	r6, r2, r6, ror #30
+  14:	206d7241 	rsbcs	r7, sp, r1, asr #4
+  18:	65626d45 	strbvs	r6, [r2, #-3397]!	; 0xfffff2bb
+  1c:	64656464 	strbtvs	r6, [r5], #-1124	; 0xfffffb9c
+  20:	6f725020 	svcvs	0x00725020
+  24:	73736563 	cmnvc	r3, #415236096	; 0x18c00000
+  28:	2073726f 	rsbscs	r7, r3, pc, ror #4
+  2c:	30322d39 	eorscc	r2, r2, r9, lsr sp
+  30:	712d3931 			; <UNDEFINED> instruction: 0x712d3931
+  34:	616d2d34 	cmnvs	sp, r4, lsr sp
+  38:	29726f6a 	ldmdbcs	r2!, {r1, r3, r5, r6, r8, r9, sl, fp, sp, lr}^
+  3c:	322e3920 	eorcc	r3, lr, #32, 18	; 0x80000
+  40:	3220312e 	eorcc	r3, r0, #-2147483637	; 0x8000000b
+  44:	31393130 	teqcc	r9, r0, lsr r1
+  48:	20353230 	eorscs	r3, r5, r0, lsr r2
+  4c:	6c657228 	sfmvs	f7, 2, [r5], #-160	; 0xffffff60
+  50:	65736165 	ldrbvs	r6, [r3, #-357]!	; 0xfffffe9b
+  54:	415b2029 	cmpmi	fp, r9, lsr #32
+  58:	612f4d52 			; <UNDEFINED> instruction: 0x612f4d52
+  5c:	392d6d72 	pushcc	{r1, r4, r5, r6, r8, sl, fp, sp, lr}
+  60:	6172622d 	cmnvs	r2, sp, lsr #4
+  64:	2068636e 	rsbcs	r6, r8, lr, ror #6
+  68:	69766572 	ldmdbvs	r6!, {r1, r4, r5, r6, r8, sl, sp, lr}^
+  6c:	6e6f6973 			; <UNDEFINED> instruction: 0x6e6f6973
+  70:	37373220 	ldrcc	r3, [r7, -r0, lsr #4]!
+  74:	5d393935 			; <UNDEFINED> instruction: 0x5d393935
+	...
