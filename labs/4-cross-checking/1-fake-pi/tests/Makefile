@@ -36,10 +36,10 @@
 #   TEST_SRC += $(wildcard ./[1]-*.c)
 
 # 1. do a single 0-*.c test file since easy.
-TEST_SRC := 0-gpio-write-17.c
+# TEST_SRC := 0-gpio-write-17.c
 
 # 2. do all the 0-* test files (uncomment)
-# TEST_SRC := $(wildcard ./[0]-*.c)
+TEST_SRC := $(wildcard ./[0]-*.c)
 
 # 3. then do the 1-*.c tests (uncomment)
 # TEST_SRC := $(wildcard ./[1]-*.c)
@@ -50,6 +50,8 @@ TEST_SRC := 0-gpio-write-17.c
 
 # 6. then do everything.
 # TEST_SRC := $(wildcard ./[0-5]-*.c) $(wildcard ./prog-*.c)  $(wildcard ./act-*.c) 
+
+# TEST_SRC := $(wildcard ./[0-2]*.c)
 
 ###############################################################################
 
