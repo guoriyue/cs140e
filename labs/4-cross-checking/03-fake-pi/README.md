@@ -151,10 +151,10 @@ results.
 -----------------------------------------------------------------------
 ### `2-libpi-fake`
 
-Now we take a big step and start including much lower level files
-from libpi.  Again, the interesting thing here is that these files were
-written to run on the pi and yet if we implement the right low level
-interfaces we can fake them out and run them on unix.
+Now we take a big step and start including much lower level files from
+libpi.  Again, the interesting thing here is that these files were written
+to run on the pi and yet if we implement the right low level interfaces
+we can fake them out and run them on unix without any modification.
 
 If you look in `2-libpi-fake/Makefile` you can see that we pull in
 the entire file for `libpi/libc/printk.c`
@@ -162,6 +162,7 @@ the entire file for `libpi/libc/printk.c`
 `libpi/libc/putchar.c`
 and `libpi/libc/clean-reboot.c`:
 
+    # 2-libpi-fake/Makefile : pull in more files.
     SRC  = $(LPP)/libc/printk.c
     SRC  += $(LPP)/libc/putk.c
     SRC  += $(LPP)/libc/putchar.c
