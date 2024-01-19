@@ -152,8 +152,11 @@ void PUT32(uint32_t addr, uint32_t v) {
     case gpio_fsel1: gpio_fsel1_v = v;  break;
     case gpio_fsel2: gpio_fsel2_v = v;  break;
     case gpio_fsel3: gpio_fsel3_v = v;  break;
+    case gpio_fsel4: gpio_fsel4_v = v;  break;
     case gpio_set0:  gpio_set0_v  = v;  break;
     case gpio_clr0:  gpio_clr0_v  = v;  break;
+    case gpio_set1:  gpio_set1_v  = v;  break;
+    case gpio_clr1:  gpio_clr1_v  = v;  break;
     case gpio_lev0:  panic("illegal write to gpio_lev0!\n");
     default: panic("write to illegal address: %x\n", addr);
     }
@@ -176,6 +179,7 @@ uint32_t GET32(uint32_t addr) {
     case gpio_fsel1: v = gpio_fsel1_v; break;
     case gpio_fsel2: v = gpio_fsel2_v; break;
     case gpio_fsel3: v = gpio_fsel3_v; break;
+    case gpio_fsel4: v = gpio_fsel4_v; break;
     // we don't allow reading these.
     // case gpio_set0:  v = gpio_set0_v;  break;
     // case gpio_clr0:  v = gpio_clr0_v;  break;

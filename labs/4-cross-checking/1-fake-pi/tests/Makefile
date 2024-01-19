@@ -54,6 +54,7 @@
 # TEST_SRC := $(wildcard ./[0-2]*.c)
 
 TEST_SRC := $(wildcard ./[5]-*.c)
+# TEST_SRC := $(wildcard ./act-*.c)
 ###############################################################################
 
 # so it doesn't make noise.
