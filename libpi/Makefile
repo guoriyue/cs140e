@@ -4,8 +4,8 @@
 # to add your gpio.c:
 #   1. copy gpio.c to libpi/src/gpio.c
 #   2. swap the two lines below.
-STAFF_OBJS  +=  ./staff-objs/gpio.o
-# SRC += src/gpio.c
+# STAFF_OBJS  +=  ./staff-objs/gpio.o
+SRC += src/gpio.c
 
 # you would add the path to yours.
 STAFF_OBJS  +=  ./staff-objs/uart.o

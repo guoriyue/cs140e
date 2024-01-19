@@ -161,7 +161,7 @@ int gpio_read(unsigned pin) {
   if(pin >= 32)
     return 0;
   
-  if(pin >= 32)
+  if(pin >= 32 && pin != 47)
     return -1;
 
   unsigned v = 0;
@@ -179,8 +179,6 @@ int gpio_read(unsigned pin) {
 
 void gpio_set_function(unsigned pin, gpio_func_t function){
   // printk works now
-
-  printk("pin: %d\n", pin);
 
   if (function<0 && function > 7){
     return;

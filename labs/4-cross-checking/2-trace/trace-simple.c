@@ -63,13 +63,19 @@ static void emit_get32(uint32_t addr, uint32_t val) {
 // the linker will change all calls to GET32 to call __wrap_GET32
 void __wrap_PUT32(unsigned addr, unsigned val) {
     // XXX: implement this function!
-    unimplemented();
+    // unimplemented();
+    emit_put32(addr, val);
+    PUT32(addr, val);
+    return ;
 }
 
 // the linker will change all calls to GET32 to call __wrap_GET32
 unsigned __wrap_GET32(unsigned addr) {
     unsigned v = 0;
     // implement this function!
-    unimplemented();
+    // unimplemented();
+    v = GET32(addr);
+    emit_get32(addr, v);
     return v;
+    // return v;
 }
