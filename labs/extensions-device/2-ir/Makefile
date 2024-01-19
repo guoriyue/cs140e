@@ -1,9 +1,6 @@
-SUBDIRS= 01-tracing-pi  03-fake-pi	 1-fake-pi 2-trace check-hello check-libpi
+SUBDIRS= code
 
-# this only works on linux
-SUBDIRS += 02-tracing-linux  
-
-.PHONY: all check clean
+.PHONY: all clean
 all check clean: $(SUBDIRS)
 
 all: TARGET=all
@@ -14,10 +11,10 @@ clean: TARGET=clean
 
 # recursive call to make
 $(SUBDIRS): force
-	$(MAKE) -s -C $@ $(TARGET)
+	$(MAKE) -C $@ $(TARGET)
 
 clean:
-	rm -f *~ *.bak
+	rm -f *~ *.bak 
 
 .PHONY: force
 	force :;
