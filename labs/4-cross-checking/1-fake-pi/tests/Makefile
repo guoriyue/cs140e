@@ -39,7 +39,7 @@
 # TEST_SRC := 0-gpio-write-17.c
 
 # 2. do all the 0-* test files (uncomment)
-TEST_SRC := $(wildcard ./[0]-*.c)
+# TEST_SRC := $(wildcard ./[0]-*.c)
 
 # 3. then do the 1-*.c tests (uncomment)
 # TEST_SRC := $(wildcard ./[1]-*.c)
@@ -53,6 +53,7 @@ TEST_SRC := $(wildcard ./[0]-*.c)
 
 # TEST_SRC := $(wildcard ./[0-2]*.c)
 
+TEST_SRC := $(wildcard ./[5]-*.c)
 ###############################################################################
 
 # so it doesn't make noise.

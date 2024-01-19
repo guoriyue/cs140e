@@ -54,7 +54,14 @@ void gpio_set_output(unsigned pin) {
     int shift = (pin - 20) * 3;
     // *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift)) | (1 << shift);
     PUT32(gpio_fsel2, (val & ~(mask << shift)) | (1 << shift));
-  }  
+  }else if (pin<32){
+    volatile unsigned gpio_fsel3 = (volatile unsigned) (GPIO_BASE + 0x0c);
+    unsigned val = GET32(gpio_fsel3);
+    int mask = 0b00000111;
+    int shift = (pin - 30) * 3;
+    // *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift)) | (1 << shift);
+    PUT32(gpio_fsel3, (val & ~(mask << shift)) | (1 << shift));
+  }
 }
 
 // set GPIO <pin> on.
@@ -126,7 +133,15 @@ void gpio_set_input(unsigned pin) {
     int shift = (pin - 20) * 3;
     // *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift));
     PUT32(gpio_fsel2, (val & ~(mask << shift)));
-  }  
+  }else if (pin<32){
+    volatile unsigned gpio_fsel3 = (volatile unsigned) (GPIO_BASE + 0x0c);
+    unsigned val = GET32(gpio_fsel3);
+    int mask = 0b00000111;
+    int shift = (pin - 30) * 3;
+    // *gpio_fsel2 = (*gpio_fsel2 & ~(mask << shift));
+    PUT32(gpio_fsel3, (val & ~(mask << shift)));
+  
+  }
 }
 
 // return the value of <pin>
@@ -149,3 +164,7 @@ int gpio_read(unsigned pin) {
   // *gpio_clr0_ = (1 << pin);
 
 }
+
+// void gpio_set_function(unsigned pin, gpio_func_t function){
+//   return ;
+// }
