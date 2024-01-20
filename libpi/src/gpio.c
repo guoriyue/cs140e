@@ -176,7 +176,7 @@ int gpio_read(unsigned pin) {
 void gpio_set_function(unsigned pin, gpio_func_t function){
   // printk works now
 
-  if (function<0 && function > 7){
+  if (function<0 || function > 7){
     return;
   }
 

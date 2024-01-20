@@ -67,8 +67,6 @@ void gpio_set_output(unsigned pin) {
 
 // set GPIO <pin> on.
 void gpio_set_on(unsigned pin) {
-  if(pin >= 32)
-    return;
   if(pin >= 32 && pin != 47)
     return ;
   // implement this
@@ -85,8 +83,6 @@ void gpio_set_on(unsigned pin) {
 
 // set GPIO <pin> off
 void gpio_set_off(unsigned pin) {
-  if(pin >= 32)
-    return;
   if(pin >= 32 && pin != 47)
     return ;
   // implement this
@@ -158,10 +154,10 @@ void gpio_set_input(unsigned pin) {
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
-  if(pin >= 32)
-    return 0;
+  // if(pin >= 32)
+  //   return 0;
   
-  if(pin >= 32 && pin != 47)
+  if(pin >= 32)
     return -1;
 
   unsigned v = 0;
@@ -180,12 +176,10 @@ int gpio_read(unsigned pin) {
 void gpio_set_function(unsigned pin, gpio_func_t function){
   // printk works now
 
-  if (function<0 && function > 7){
+  if (function<0 || function > 7){
     return;
   }
 
-  if(pin >= 32)
-    return;
   if(pin >= 32 && pin != 47)
     return ;
 

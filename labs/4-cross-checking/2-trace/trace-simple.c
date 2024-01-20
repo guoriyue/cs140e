@@ -65,7 +65,9 @@ void __wrap_PUT32(unsigned addr, unsigned val) {
     // XXX: implement this function!
     // unimplemented();
     emit_put32(addr, val);
-    PUT32(addr, val);
+    // PUT32(addr, val);
+    __real_PUT32(addr, val);
+    
     return ;
 }
 
@@ -74,8 +76,9 @@ unsigned __wrap_GET32(unsigned addr) {
     unsigned v = 0;
     // implement this function!
     // unimplemented();
-    v = GET32(addr);
+    // v = GET32(addr);
     emit_get32(addr, v);
+    v = __real_GET32(addr);
     return v;
     // return v;
 }

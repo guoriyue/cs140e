@@ -104,7 +104,7 @@ checkoff: $(DEPS)
 	@echo -n "total files = ";
 	@ls $(TEST_OUT) | wc  -l
 	@echo -n "checksum of cksum command <ls TEST_OUT| sort -n | cksum> =\n   ";
-	@ls $(TEST_OUT) | sort -n | cksum 
+	@cksum $(TEST_OUT) | sort -n | cksum 
 
 cleanall: clean
 	rm -f *.out  *.raw

@@ -157,8 +157,8 @@ int gpio_read(unsigned pin) {
   // volatile unsigned *gpio_lev0_ = (volatile unsigned *)gpio_lev0;
   int all_values = GET32(gpio_lev0);
   v = (all_values >> pin) & 0x1;
-  // return v;
-  return DEV_VAL32(v);
+  return v;
+  // return DEV_VAL32(v);
 
   // volatile unsigned *gpio_clr0_ = (volatile unsigned *)gpio_clr0;
   // *gpio_clr0_ = (1 << pin);
