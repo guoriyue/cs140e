@@ -24,23 +24,58 @@
  *	- gprof_dump will print out all samples.
  */
 
+uint32_t* instruction_table;
+uint32_t instruction_table_size;
+
 // allocate table.
 //    few lines of code
 static unsigned gprof_init(void) {
-    unimplemented();
+    // unimplemented();
+    uint32_t code_size = (uint32_t)__code_end__ - (uint32_t)__code_start__;
+    // void* heap_ptr = kmalloc_heap_ptr();
+    // printk("before kmalloc heap_ptr: %p\n", heap_ptr);
+    instruction_table = (uint32_t*) kmalloc(code_size);
+    // heap_ptr = kmalloc_heap_ptr();
+    // printk("after kmalloc heap_ptr: %p\n", heap_ptr);
+    // before kmalloc heap_ptr: 0x100000
+    // after kmalloc heap_ptr: 0x105000
+    instruction_table_size = code_size / 4;
+    // instruction_table_size 1309
+    // printk("instruction_table_size: %x\n", instruction_table_size);
+    return 0;
 }
 
 // increment histogram associated w/ pc.
 //    few lines of code
 static void gprof_inc(unsigned pc) {
-    unimplemented();
+    // printk("gprof_inc pc: %x\n", pc);
+    // printk("pc number: %x\n", pc/4);
+    // uint32_t* dst = (uint32_t*)instruction_table;
+    // dst += (pc - (unsigned)__code_start__)/4;
+    uint32_t* dst = instruction_table + (pc - (unsigned)__code_start__)/4;
+    // printk("before increment: %d\n", *dst);
+    (*dst)++;
+    // printk("after increment: %d\n", *dst);
 }
 
 // print out all samples whose count > min_val
 //
 // make sure sampling does not pick this code up!
 static void gprof_dump(unsigned min_val) {
-    unimplemented();
+    // unimplemented();
+    system_disable_interrupts();
+    for (unsigned int i=0; i<instruction_table_size; i++) {
+        // uint32_t* dst = (uint32_t*)(instruction_table);
+        // dst += i;
+        uint32_t* dst = instruction_table + i;
+        // printk("__code_start__: %x, idx: %x\n", __code_start__, i*4);
+        // printk("pc: %x, count: %d\n", i*4, *dst);
+        if (*dst > min_val) {
+            unsigned instruction = i*4 + (unsigned) __code_start__;
+            printk("instruction: %x, count: %d\n", instruction, *dst);
+        }
+    }
+    system_enable_interrupts();
 }
 
 

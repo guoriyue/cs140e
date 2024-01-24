@@ -63,10 +63,12 @@ void notmain() {
 
     printk("setting up timer interrupts\n");
     // Q: if you change 0x100?
+    // less iters, this is the number of cycles between interrupts.
     timer_interrupt_init(0x100);
 
     printk("gonna enable ints globally!\n");
     // Q: what happens (&why) if you don't do?
+    // No interrupts. cnt always 0. infinite loop.
     system_enable_interrupts();
     printk("enabled!\n");
 
@@ -80,10 +82,23 @@ void notmain() {
     // cnt never modified if not volatile.
     while(cnt < N) {
         // Q: if you comment this out?  why do #'s change?
-        printk("iter=%d: cnt = %d, time between interrupts = %d usec (%x)\n", 
-                                    iter,cnt, period,period);
+        // print slows down the loop.
+        if (cnt % 100000 == 0)
+            printk("iter=%d: cnt = %d, time between interrupts = %d usec (%x)\n", 
+                                        iter,cnt, period,period);
         iter++;
     }
+    // summary:
+    //     6564428: total iterations
+    //     20: tot interrupts
+    //     328221: iterations / interrupt
+    //     65792: average period
+    
+    // summary:
+    //     230: total iterations
+    //     20: tot interrupts
+    //     11: iterations / interrupt
+    //     65792: average period
 
     // overly complicated calculation of sec/ms/usec breakdown
     // make it easier to tell the overhead of different changes.
