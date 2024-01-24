@@ -11,4 +11,4 @@ BOOTLOADER = pi-install
 RUN = 1
 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-v4
-# include $(CS140E_2024_PATH)/libpi/mk/Makefile.simple
+include $(CS140E_2024_PATH)/libpi/mk/Makefile.simple

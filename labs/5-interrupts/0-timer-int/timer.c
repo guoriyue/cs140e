@@ -30,6 +30,7 @@ void interrupt_vector(unsigned pc) {
      * caused us to interrupt 
      *
      * Q: what happens, exactly, if we delete?
+     * Infinite interrupts and loop.
      */
     PUT32(arm_timer_IRQClear, 1);
 
@@ -51,6 +52,7 @@ void interrupt_vector(unsigned pc) {
     last_clk = clk;
 
     // Q: what happens (&why) if you uncomment the print statement?
+    // Two threads interleave.
     // printk("In interrupt handler at time: %d\n", clk);
 }
 
@@ -75,6 +77,7 @@ void notmain() {
     //enable_cache(); 	
     unsigned iter = 0, sum = 0;
 #   define N 20
+    // cnt never modified if not volatile.
     while(cnt < N) {
         // Q: if you comment this out?  why do #'s change?
         printk("iter=%d: cnt = %d, time between interrupts = %d usec (%x)\n", 
