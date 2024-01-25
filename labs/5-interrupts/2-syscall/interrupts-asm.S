@@ -65,6 +65,30 @@ _data_abort_asm:              .word data_abort_asm
 _interrupt_asm:               .word interrupt_asm
 _interrupt_table_end:
 
+
+
+
+
+.globl _int_table_user
+.globl _int_table_user_end
+_int_table_user:
+  ldr pc, __reset_asm
+  ldr pc, __undefined_instruction_asm
+  ldr pc, __software_interrupt_asm
+  ldr pc, __prefetch_abort_asm
+  ldr pc, __data_abort_asm
+  ldr pc, __reset_asm
+  ldr pc, __interrupt_asm
+
+__reset_asm:                   .word reset_asm
+__undefined_instruction_asm:   .word undefined_instruction_asm
+__software_interrupt_asm:      .word user_software_interrupt_asm
+__prefetch_abort_asm:          .word prefetch_abort_asm
+__data_abort_asm:              .word data_abort_asm
+__interrupt_asm:               .word interrupt_asm
+_int_table_user_end:
+
+
 @ only handler that should run since we only enable general interrupts
 interrupt_asm:
   mov sp, #INT_STACK_ADDR   @ i believe we have 512mb - 16mb, so this should be safe
@@ -95,8 +119,28 @@ software_interrupt_asm:
     @   - call
     @   - restore regs
     @   - return from the exception.
-    asm_not_implemented()
-    movs pc, lr
+    @ asm_not_implemented()
+
+    push  {r1-r3, lr}
+
+    mov   r1, r0
+    mov   r0, lr       
+    bl    syscall_vector
+
+    pop   {r1-r3, lr}
+    movs  pc, lr
+
+
+user_software_interrupt_asm:
+  mov sp, #INT_STACK_ADDR   @ i believe we have 512mb - 16mb, so this should be safe
+  push  {r1-r3, lr}
+
+  mov   r1, r0
+  mov   r0, lr       
+  bl    syscall_vector
+
+  pop   {r1-r3, lr}
+  movs  pc, lr
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @ we don't generate any of these, will just panic and halt.
