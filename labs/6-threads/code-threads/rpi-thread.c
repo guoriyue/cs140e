@@ -240,6 +240,7 @@ void rpi_thread_start(void) {
             goto end;
         }
         th_trace("before context switch!\n");
+        printk("switching from tid=%d to tid=%d\n", cur_thread->tid, nxt_thread->tid);
         rpi_cswitch(&cur_thread->saved_sp, nxt_thread->saved_sp);
         cur_thread = nxt_thread;
         th_trace("after context switch!\n");
@@ -272,4 +273,15 @@ void rpi_print_regs(uint32_t *sp) {
         printk("sp[%d]=r%d=%x\n", i, r, sp[i]);
     }
     clean_reboot();
+}
+
+void rpi_init_trampoline() {
+    // call the function.
+    // printk("calling code=%p, arg=%p\n", code, arg);
+    // rpi_thread_t *t = rpi_cur_thread();
+    printk("cpp rpi_init_trampoline tid=%d\n", t->tid);
+    printk("cpp rpi_init_trampoline code=%p, arg=%p\n", t->saved_sp[R5_OFFSET], t->saved_sp[R4_OFFSET]);
+
+    // // if it returns, call exit.
+    // rpi_exit(0);
 }
