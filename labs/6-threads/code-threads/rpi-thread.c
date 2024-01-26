@@ -66,16 +66,28 @@ static void th_free(rpi_thread_t *th) {
  */
 
 // stack offsets we expect.
+// enum {
+//     R4_OFFSET = 0,
+//     R5_OFFSET,
+//     R6_OFFSET,
+//     R7_OFFSET,
+//     R8_OFFSET,
+//     R9_OFFSET,
+//     R10_OFFSET,
+//     R11_OFFSET,
+//     R14_OFFSET = 8,
+//     LR_OFFSET = 8
+// };
 enum {
     R4_OFFSET = 0,
-    R5_OFFSET,
-    R6_OFFSET,
-    R7_OFFSET,
-    R8_OFFSET,
-    R9_OFFSET,
-    R10_OFFSET,
-    R11_OFFSET,
-    R14_OFFSET = 8,
+    R5_OFFSET = 1,
+    R6_OFFSET = 2,
+    R7_OFFSET = 3,
+    R8_OFFSET = 4,
+    R9_OFFSET = 5,
+    R10_OFFSET = 6,
+    R11_OFFSET = 7,
+    // R14_OFFSET = 8,
     LR_OFFSET = 8
 };
 
@@ -124,15 +136,20 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
     // t->arg = arg;
     // t->fn = code;
     t->saved_sp = (uint32_t*) t->stack;
-    t->saved_sp += THREAD_MAXSTACK - 1;
-    t->saved_sp -= 1;
-    t->saved_sp = (uint32_t*)(rpi_init_trampoline);
+    t->saved_sp += THREAD_MAXSTACK;
+    // total offset 36
+    t->saved_sp -= 9;
+    t->saved_sp[R4_OFFSET] = (uint32_t) arg;
+    t->saved_sp[R5_OFFSET] = (uint32_t) code;
+    t->saved_sp[LR_OFFSET] = (uint32_t) rpi_init_trampoline;
+    // t->saved_sp -= 1;
+    // t->saved_sp = (uint32_t*)(rpi_init_trampoline);
     
-    t->saved_sp -= 1;
-    t->saved_sp = ((uint32_t*)(code));
-    t->saved_sp -= 1;
-    t->saved_sp = ((uint32_t*)(arg));
-    
+    // t->saved_sp -= 1;
+    // t->saved_sp = ((uint32_t*)(code));
+    // t->saved_sp -= 1;
+    // t->saved_sp = ((uint32_t*)(arg));
+
 
     th_trace("rpi_fork: tid=%d, code=[%p], arg=[%x], saved_sp=[%p]\n",
             t->tid, code, arg, t->saved_sp);
@@ -213,15 +230,19 @@ void rpi_thread_start(void) {
         scheduler_thread = th_alloc();
 
     // todo("implement the rest of rpi_thread_start");
-    // cur_thread = scheduler_thread;
-    rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
-
+    cur_thread = scheduler_thread;
+    // th_trace("before first context switch!\n");
+    // rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
+    // th_trace("first context switch done!\n");
     while (runq.cnt) {
         rpi_thread_t * nxt_thread = Q_pop(&runq);
         if (nxt_thread == NULL) {
             goto end;
         }
+        th_trace("before context switch!\n");
         rpi_cswitch(&cur_thread->saved_sp, nxt_thread->saved_sp);
+        cur_thread = nxt_thread;
+        th_trace("after context switch!\n");
         // cur_thread->fn(cur_thread->arg);
         // th_trace("switching from tid=%d to tid=%d\n", scheduler_thread->tid, nxt_thread->tid);
         // rpi_yield();
@@ -241,7 +262,7 @@ void rpi_print_regs(uint32_t *sp) {
     // use this to check that your offsets are correct.
     printk("cur-thread=%d\n", cur_thread->tid);
     printk("sp=%p\n", sp);
-
+    
     // stack pointer better be between these.
     printk("stack=%p\n", &cur_thread->stack[THREAD_MAXSTACK]);
     assert(sp < &cur_thread->stack[THREAD_MAXSTACK]);

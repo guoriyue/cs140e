@@ -18,8 +18,8 @@
 RUN=0
 
 # switch these when implemented.
-# COMMON_SRC += rpi-thread-asm.S 
-STAFF_OBJS += staff-rpi-thread-asm.o
+COMMON_SRC += rpi-thread-asm.S 
+# STAFF_OBJS += staff-rpi-thread-asm.o
 
 # switch these when implemented.
 COMMON_SRC += rpi-thread.c

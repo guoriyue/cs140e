@@ -9,12 +9,15 @@ MK_FN(rpi_get_sp)
     bx lr
 
 MK_FN(rpi_cswitch)
-    push {r4,r5,r6,r7,r8,r9,r10,r11,lr}
+    push {r4-r11,lr}
     str sp, [r0]
-
-    str r1, [sp]
-    pop {r4,r5,r6,r7,r8,r9,r10,r11,lr}
+    @ ldr sp, [r1] @ [] is defererencing need to understand pointer and scalar
+    mov sp, r1
+    pop {r4-r11, lr}
+    mov r0, r4
+    mov r1, r5
     bx lr
+    
 
 @ [Make sure you can answer: why do we need to do this?]
 @
@@ -26,8 +29,12 @@ MK_FN(rpi_cswitch)
 @ 
 MK_FN(rpi_init_trampoline)
     @ asm_todo("implement this")
-    pop {r0,r1}
-    bl r1
+
+    @ ldr lr, [sp, #32]
+    @ ldr r1, [sp, #4]
+    @ ldr r0, [sp, #0]
+    blx r1
     bl rpi_exit
+    
     bx lr
     
