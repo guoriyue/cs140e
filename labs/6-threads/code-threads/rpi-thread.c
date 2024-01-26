@@ -99,6 +99,7 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
      *     position so context switching will jump there.
      */
     todo("initialize thread stack");
+    // t->saved_sp = 
 
     th_trace("rpi_fork: tid=%d, code=[%p], arg=[%x], saved_sp=[%p]\n",
             t->tid, code, arg, t->saved_sp);
