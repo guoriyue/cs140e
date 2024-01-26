@@ -48,6 +48,7 @@ void notmain() {
 	rpi_thread_start();
 
 	// no more threads: check.
+    printk("thread_count=%d, thread_sum=%d\n", n, sum);
 	trace("count = %d, sum=%d\n", thread_count, thread_sum);
 	assert(thread_count == n);
 	assert(thread_sum == sum);

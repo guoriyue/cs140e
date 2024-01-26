@@ -9,7 +9,11 @@ MK_FN(rpi_get_sp)
     bx lr
 
 MK_FN(rpi_cswitch)
-    asm_todo("implement this")
+    push {r4,r5,r6,r7,r8,r9,r10,r11,lr}
+    str sp, [r0]
+
+    str r1, [sp]
+    pop {r4,r5,r6,r7,r8,r9,r10,r11,lr}
     bx lr
 
 @ [Make sure you can answer: why do we need to do this?]
@@ -21,5 +25,9 @@ MK_FN(rpi_cswitch)
 @	- <arg> into r0
 @ 
 MK_FN(rpi_init_trampoline)
-    asm_todo("implement this")
+    @ asm_todo("implement this")
+    pop {r0,r1}
+    bl r1
+    bl rpi_exit
     bx lr
+    
