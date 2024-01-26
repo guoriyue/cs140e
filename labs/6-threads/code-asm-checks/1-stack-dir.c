@@ -8,7 +8,15 @@
 #include "rpi.h"
 
 int stack_grows_down(void) {
-    todo("implement this routine\n");
+    // todo("implement this routine\n");
+    int a = 1;
+    int b = 2;
+    if (&a > &b) {
+        // stack grows down
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 void notmain(void) {

@@ -1,15 +1,15 @@
 # work through these in order.
-PROGS += 1-stack-dir.c
-# PROGS += 2-where-push.c
+# PROGS += 1-stack-dir.c
+# PROGS += 2-where-push-one.c
 # PROGS += 3-push-order.c
 # PROGS += 4-callee.c
-# PROGS += 5-write-regs.c
+PROGS += 5-write-regs.c
 
 # most of the code you'll implement in here.
 COMMON_SRC = asm-checks.S
 
 # run them all
-# PROGS = $(wildcard ./[12345]*.c)
+# PROGS = $(wildcard ./[1234]*.c)
 
 
 # uncomment if you want it to automatically run.

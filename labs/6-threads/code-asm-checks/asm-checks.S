@@ -11,7 +11,13 @@
 #
 # note: don't trash the sp!
 MK_FN(push_one)
-    asm_todo("implement this!")
+    # asm_todo("implement this!")
+    mov r2, sp
+    mov sp, r0
+    push {r1}
+    mov r0, sp
+
+    mov sp, r2
     bx lr
 
 
@@ -20,6 +26,12 @@ MK_FN(push_one)
 #
 # note: don't trash the sp!
 MK_FN(push_two)
+    mov r3, sp
+    mov sp, r0
+    push {r1,r2}
+    mov r0, sp
+
+    mov sp, r3
     bx lr
 
 MK_FN(check_push_asm)
@@ -101,8 +113,13 @@ MK_FN(write_regs_to_stack)
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     @ push all the callee
     @ store sp into the address held in r0
-    asm_todo(implement this)
+    @ asm_todo(implement this)
+    push {r4,r5,r6,r7,r8,r9,r10,r11,lr}
+    str sp, [r0]
+
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    
 
     mov r0, sp
     bl after_writing_regs

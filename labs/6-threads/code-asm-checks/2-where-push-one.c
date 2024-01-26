@@ -1,4 +1,5 @@
 // Q: does push change sp before writing to it or after?
+// after
 #include "rpi.h"
 
 enum { val1 = 0xdeadbeef, val2 = 0xFAF0FAF0 };
@@ -14,8 +15,10 @@ uint32_t *push_one(uint32_t *addr, uint32_t val1);
 
 void notmain() {
     uint32_t v[4] = { 1, 2, 3, 4 };
-
+    printk("v[2]=%x\n", &v[2]);
     uint32_t *res = push_one(&v[2], val1);
+    printk("res=%x\n", res);
+    // printk("res 1=%d\n", res[1]);
     assert(res == &v[1]);
 
     // note this also shows you the order of writes.
@@ -28,6 +31,7 @@ void notmain() {
         assert(v[3] == 4);
         assert(v[2] == 3);
         assert(v[0] == 1);
+        // wrote value after modifying pointer
         trace("wrote value after modifying pointer\n");
     } else 
         panic("unexpected result\n");

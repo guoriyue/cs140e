@@ -7,9 +7,16 @@
 // sp to <store_sp> then call <after_writing> with the sp.
 void write_regs_to_stack(uint32_t **store_sp);
 
+void write(uint32_t *x, uint32_t v) {
+	*x = v;
+}
+
 // hack so <write_regs_to_stack> stores sp in a way that we
 // can check.
 static uint32_t *stored_sp;
+
+// mov points to another 
+// str just changes the value
 
 // stack offsets we expect.  
 enum { 

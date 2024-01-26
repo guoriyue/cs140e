@@ -26,6 +26,11 @@ void notmain() {
     } else if(v[1] == val2 && v[0] == val1) {
         assert(v[3] == 4);
         assert(v[2] == 3);
+        // push r1, r2
+        // r1 = val1 r2 = val2
+        // v[1] r2 v[0] r1
+        // so actually first r2 in stack then r1 in stack
+        // still r1 in lower address
         todo("what does this imply?\n");
     } else 
         panic("unexpected result\n");
