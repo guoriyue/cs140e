@@ -120,6 +120,7 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
 
     // write this so that it calls code,arg.
     void rpi_init_trampoline(void);
+    // void rpi_init_trampoline(void (*code)(void *arg), void *arg, void *func_addr);
 
     /*
      * must do the "brain surgery" (k.thompson) to set up the stack
@@ -225,29 +226,39 @@ void rpi_thread_start(void) {
     if(Q_empty(&runq))
         goto end;
 
-    // setup scheduler thread block.
-    if(!scheduler_thread)
-        scheduler_thread = th_alloc();
+    // // setup scheduler thread block.
+    // if(!scheduler_thread)
+    //     scheduler_thread = th_alloc();
 
     // todo("implement the rest of rpi_thread_start");
-    cur_thread = scheduler_thread;
-    // th_trace("before first context switch!\n");
-    // rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
-    // th_trace("first context switch done!\n");
-    while (runq.cnt) {
-        rpi_thread_t * nxt_thread = Q_pop(&runq);
-        if (nxt_thread == NULL) {
-            goto end;
-        }
-        th_trace("before context switch!\n");
-        printk("switching from tid=%d to tid=%d\n", cur_thread->tid, nxt_thread->tid);
-        rpi_cswitch(&cur_thread->saved_sp, nxt_thread->saved_sp);
-        cur_thread = nxt_thread;
-        th_trace("after context switch!\n");
-        // cur_thread->fn(cur_thread->arg);
-        // th_trace("switching from tid=%d to tid=%d\n", scheduler_thread->tid, nxt_thread->tid);
-        // rpi_yield();
+    // cur_thread = scheduler_thread;
+    cur_thread = Q_pop(&runq);
+    if(cur_thread) {
+
+        scheduler_thread = th_alloc();
+
+        printk("before context switch!\n");
+        printk("rpi_thread_start switching from tid=%d to tid=%d\n", scheduler_thread->tid, cur_thread->tid);
+        rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
+        printk("after context switch!\n");
     }
+    // // th_trace("before first context switch!\n");
+    // // rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
+    // // th_trace("first context switch done!\n");
+    // // while (runq.cnt) {
+    //     rpi_thread_t * nxt_thread = Q_pop(&runq);
+    //     if (nxt_thread == NULL) {
+    //         goto end;
+    //     }
+    //     th_trace("before context switch!\n");
+    //     printk("rpi_thread_start switching from tid=%d to tid=%d\n", cur_thread->tid, nxt_thread->tid);
+    //     rpi_cswitch(&cur_thread->saved_sp, nxt_thread->saved_sp);
+    //     // cur_thread = nxt_thread;
+    //     th_trace("after context switch!\n");
+    //     // cur_thread->fn(cur_thread->arg);
+    //     // th_trace("switching from tid=%d to tid=%d\n", scheduler_thread->tid, nxt_thread->tid);
+    //     // rpi_yield();
+    // }
 
 end:
     redzone_check(0);
@@ -275,13 +286,15 @@ void rpi_print_regs(uint32_t *sp) {
     clean_reboot();
 }
 
-void rpi_init_trampoline() {
-    // call the function.
-    // printk("calling code=%p, arg=%p\n", code, arg);
-    // rpi_thread_t *t = rpi_cur_thread();
-    printk("cpp rpi_init_trampoline tid=%d\n", t->tid);
-    printk("cpp rpi_init_trampoline code=%p, arg=%p\n", t->saved_sp[R5_OFFSET], t->saved_sp[R4_OFFSET]);
+// void rpi_init_trampoline(void (*code)(void *arg), void *arg, void *func_addr) {
+//     // call the function.
+//     // printk("calling code=%p, arg=%p\n", code, arg);
+//     printk("code=%x, arg=%x\n", code, arg);
+//     printk("func_addr=%x\n", func_addr);
+//     rpi_thread_t *t = rpi_cur_thread();
+//     printk("cpp rpi_init_trampoline tid=%d\n", t->tid);
+//     printk("cpp rpi_init_trampoline code=%x, arg=%x\n", t->saved_sp[R5_OFFSET], t->saved_sp[R4_OFFSET]);
 
-    // // if it returns, call exit.
-    // rpi_exit(0);
-}
+//     // // if it returns, call exit.
+//     // rpi_exit(0);
+// }

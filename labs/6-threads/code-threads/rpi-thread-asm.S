@@ -26,4 +26,19 @@ MK_FN(rpi_cswitch)
 @	- <arg> into r0
 @ 
 
+
+MK_FN(rpi_init_trampoline)
+    @ asm_todo("implement this")
+
+    @ ldr lr, [sp, #32]
+    @ ldr r1, [sp, #4]
+    @ ldr r0, [sp, #0]
+    @ blx r1
+
+    mov r0, r4
+    mov r1, r5
+    blx r1
+    bl rpi_exit
     
+    @ bx lr
+
