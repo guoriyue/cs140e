@@ -41,7 +41,11 @@ STAFF_OBJS += staff-kmalloc.o
 
 # PROGS = $(wildcard ./1-test*.c)
 # PROGS = 1-test-run-one.c
-PROGS = 4-test-one-fork.c
+# PROGS = 4-test-one-fork.c
+# PROGS = 5-test-exit.c
+PROGS = 5-test-restart.c
+# PROGS = 5-test-yield.c
+# PROGS = 6-test-implicit-exit.c
 ######################################################################
 # should not have to modify below.
 #

@@ -171,16 +171,18 @@ void rpi_exit(int exitcode) {
     //      th_trace("done running threads, back to scheduler\n");
     // todo("implement rpi_exit");
 
-    rpi_thread_t * local_cur_thread = rpi_cur_thread();
-    Q_append(&freeq, local_cur_thread);
-    rpi_thread_t *nxt_thread = Q_pop(&runq);
-    cur_thread = nxt_thread;
-    if (nxt_thread == NULL) {
-        cur_thread = scheduler_thread;
+    rpi_thread_t* free_thread = cur_thread;
+    Q_append(&freeq, cur_thread);
+    cur_thread = Q_pop(&runq);
+    // cur_thread = nxt_thread;
+    if (cur_thread == NULL) {
+
         th_trace("done running threads, back to scheduler\n");
+        rpi_cswitch(&free_thread->saved_sp, scheduler_thread->saved_sp);
     }
     else {
-        th_trace("switching from tid=%d to tid=%d\n", local_cur_thread->tid, nxt_thread->tid);
+        rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+        // th_trace("switching from tid=%d to tid=%d\n", free_thread->tid, cur_thread->tid);
     }
     // should never return.
     not_reached();
@@ -199,14 +201,15 @@ void rpi_yield(void) {
     //     th_trace("switching from tid=%d to tid=%d\n", old->tid, t->tid);
 
     // todo("implement the rest of rpi_yield");
-    rpi_thread_t * local_cur_thread = rpi_cur_thread();
-    rpi_thread_t *nxt_thread = Q_pop(&runq);
-    if (nxt_thread == NULL) {
-        return;
+    // rpi_thread_t *nxt_thread = Q_pop(&runq);
+    Q_append(&runq, cur_thread);
+    rpi_thread_t* old = cur_thread;
+    cur_thread = Q_pop(&runq);
+    if (cur_thread == NULL) {
+        cur_thread = old;
     }
     else {
-        Q_append(&runq, local_cur_thread);
-        cur_thread = nxt_thread;
+        rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
         // th_trace("switching from tid=%d to tid=%d\n", local_cur_thread->tid, nxt_thread->tid);
     }
 }
