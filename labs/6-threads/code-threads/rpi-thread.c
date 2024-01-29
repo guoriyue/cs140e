@@ -25,7 +25,7 @@ enum { trace_p = 1};
 static Q_t runq, freeq;
 static rpi_thread_t *cur_thread;        // current running thread.
 static rpi_thread_t *scheduler_thread;  // first scheduler thread.
-
+unsigned sleep_until[128];
 // monotonically increasing thread id: won't wrap before reboot :)
 static unsigned tid = 1;
 
@@ -60,6 +60,39 @@ static void th_free(rpi_thread_t *th) {
     Q_push(&freeq, th);
 }
 
+
+
+static int Q_in(Q_t *q, E *e) {
+    for(E *x = q->head; x; x = x->next) {
+        printk("x->tid=%d, e->tid=%d\n", x->tid, e->tid);
+        if(x->tid == e->tid)
+            return 1;
+    }
+    return 0;
+}
+
+static void Q_delete(Q_t *q, E *e) {
+    printk("delete thread %d\n", e->tid);
+    if(!q->head) {
+        assert(!q->tail);
+        return;
+    }
+    if(q->head == e) {
+        q->head = e->next;
+        if(!q->head)
+            q->tail = 0;
+        return;
+    }
+    for(E *x = q->head; x; x = x->next) {
+        if(x->next == e) {
+            x->next = e->next;
+            if(!x->next)
+                q->tail = x;
+            return;
+        }
+    }
+    panic("shouldn't get here\n");
+}
 
 /***********************************************************************
  * implement the code below.
@@ -96,23 +129,6 @@ rpi_thread_t *rpi_cur_thread(void) {
     return cur_thread;
 }
 
-// typedef struct rpi_thread {
-//     uint32_t *saved_sp;
-
-// 	struct rpi_thread *next;
-// 	uint32_t tid;
-
-//     // only used for part1: useful for testing without cswitch
-//     void (*fn)(void *arg);
-//     void *arg;          // this can serve as private data.
-    
-//     const char *annot;
-//     // threads waiting on the current one to exit.
-//     // struct rpi_thread *waiters;
-
-// 	uint32_t stack[THREAD_MAXSTACK];
-// } rpi_thread_t;
-
 // create a new thread.
 rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
     redzone_check(0);
@@ -134,8 +150,6 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
      */
     // todo("initialize thread stack");
     
-    // t->arg = arg;
-    // t->fn = code;
     t->saved_sp = (uint32_t*) t->stack;
     t->saved_sp += THREAD_MAXSTACK;
     // total offset 36
@@ -143,13 +157,6 @@ rpi_thread_t *rpi_fork(void (*code)(void *arg), void *arg) {
     t->saved_sp[R4_OFFSET] = (uint32_t) arg;
     t->saved_sp[R5_OFFSET] = (uint32_t) code;
     t->saved_sp[LR_OFFSET] = (uint32_t) rpi_init_trampoline;
-    // t->saved_sp -= 1;
-    // t->saved_sp = (uint32_t*)(rpi_init_trampoline);
-    
-    // t->saved_sp -= 1;
-    // t->saved_sp = ((uint32_t*)(code));
-    // t->saved_sp -= 1;
-    // t->saved_sp = ((uint32_t*)(arg));
 
 
     th_trace("rpi_fork: tid=%d, code=[%p], arg=[%x], saved_sp=[%p]\n",
@@ -171,18 +178,49 @@ void rpi_exit(int exitcode) {
     //      th_trace("done running threads, back to scheduler\n");
     // todo("implement rpi_exit");
 
+
     rpi_thread_t* free_thread = cur_thread;
     Q_append(&freeq, cur_thread);
-    cur_thread = Q_pop(&runq);
-    // cur_thread = nxt_thread;
-    if (cur_thread == NULL) {
 
+    cur_thread = Q_pop(&runq);
+    if (cur_thread == NULL) {
         th_trace("done running threads, back to scheduler\n");
         rpi_cswitch(&free_thread->saved_sp, scheduler_thread->saved_sp);
     }
     else {
-        rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
-        // th_trace("switching from tid=%d to tid=%d\n", free_thread->tid, cur_thread->tid);
+        // rpi_yield();
+        // rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+        while (1) {
+            unsigned clk = timer_get_usec();
+            printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
+            if (sleep_until[cur_thread->tid]) {
+                if (clk >= sleep_until[cur_thread->tid]) {
+                    sleep_until[cur_thread->tid] = 0;
+                    // printk("wake up thread %d\n", cur_thread->tid);
+                    rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+                    break;
+                }
+                else {
+                    // printk("thread %d still sleeping\n", cur_thread->tid);
+                    Q_append(&runq, cur_thread);
+                    cur_thread = Q_pop(&runq);
+                    // Q_append(&runq, cur_thread);
+                    // rpi_yield();
+                    // jump over all sleeping threads
+                    // otherwise might switch from 9 to 10 instead of 2 to 10
+
+                }
+            }
+            else {
+                // printk("thread %d never sleeping\n", cur_thread->tid);
+                // Q_append(&runq, cur_thread);
+                // cur_thread = Q_pop(&runq);
+                // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+                rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+                // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+                // break;
+            }
+        }
     }
     // should never return.
     not_reached();
@@ -201,16 +239,54 @@ void rpi_yield(void) {
     //     th_trace("switching from tid=%d to tid=%d\n", old->tid, t->tid);
 
     // todo("implement the rest of rpi_yield");
-    // rpi_thread_t *nxt_thread = Q_pop(&runq);
     Q_append(&runq, cur_thread);
     rpi_thread_t* old = cur_thread;
     cur_thread = Q_pop(&runq);
-    if (cur_thread == NULL) {
-        cur_thread = old;
+    // printk("trying to switch from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+    if (cur_thread == old) {
+        return;
+    }
+    else if (sleep_until[cur_thread->tid]) {
+        while (1) {
+            unsigned clk = timer_get_usec();
+            // printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
+            if (sleep_until[cur_thread->tid]) {
+                if (clk >= sleep_until[cur_thread->tid]) {
+                    sleep_until[cur_thread->tid] = 0;
+                    // printk("wake up thread %d\n", cur_thread->tid);
+                    rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+                    break;
+                }
+                else {
+                    // printk("thread %d still sleeping\n", cur_thread->tid);
+                    Q_append(&runq, cur_thread);
+                    cur_thread = Q_pop(&runq);
+                    // Q_append(&runq, cur_thread);
+                    // rpi_yield();
+                    // jump over all sleeping threads
+                    // otherwise might switch from 9 to 10 instead of 2 to 10
+
+                }
+            }
+            else {
+                // printk("thread %d never sleeping\n", cur_thread->tid);
+                // Q_append(&runq, cur_thread);
+                // cur_thread = Q_pop(&runq);
+                // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+                if (cur_thread == old) {
+                    return;
+                } else {
+                    rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+                    break;
+                }
+                // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+                // break;
+            }
+        }
     }
     else {
+        // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
         rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
-        // th_trace("switching from tid=%d to tid=%d\n", local_cur_thread->tid, nxt_thread->tid);
     }
 }
 
@@ -229,39 +305,15 @@ void rpi_thread_start(void) {
     if(Q_empty(&runq))
         goto end;
 
-    // // setup scheduler thread block.
-    // if(!scheduler_thread)
-    //     scheduler_thread = th_alloc();
-
-    // todo("implement the rest of rpi_thread_start");
-    // cur_thread = scheduler_thread;
-    cur_thread = Q_pop(&runq);
-    if(cur_thread) {
-
+    // setup scheduler thread block.
+    if(!scheduler_thread)
         scheduler_thread = th_alloc();
 
-        printk("before context switch!\n");
-        printk("rpi_thread_start switching from tid=%d to tid=%d\n", scheduler_thread->tid, cur_thread->tid);
+    // todo("implement the rest of rpi_thread_start");
+    cur_thread = Q_pop(&runq);
+    if(cur_thread) {
         rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
-        printk("after context switch!\n");
     }
-    // // th_trace("before first context switch!\n");
-    // // rpi_cswitch(&scheduler_thread->saved_sp, cur_thread->saved_sp);
-    // // th_trace("first context switch done!\n");
-    // // while (runq.cnt) {
-    //     rpi_thread_t * nxt_thread = Q_pop(&runq);
-    //     if (nxt_thread == NULL) {
-    //         goto end;
-    //     }
-    //     th_trace("before context switch!\n");
-    //     printk("rpi_thread_start switching from tid=%d to tid=%d\n", cur_thread->tid, nxt_thread->tid);
-    //     rpi_cswitch(&cur_thread->saved_sp, nxt_thread->saved_sp);
-    //     // cur_thread = nxt_thread;
-    //     th_trace("after context switch!\n");
-    //     // cur_thread->fn(cur_thread->arg);
-    //     // th_trace("switching from tid=%d to tid=%d\n", scheduler_thread->tid, nxt_thread->tid);
-    //     // rpi_yield();
-    // }
 
 end:
     redzone_check(0);
@@ -287,6 +339,13 @@ void rpi_print_regs(uint32_t *sp) {
         printk("sp[%d]=r%d=%x\n", i, r, sp[i]);
     }
     clean_reboot();
+}
+
+void rpi_sleep(unsigned t) {
+    unsigned clk = timer_get_usec();
+    sleep_until[cur_thread->tid] = clk + t;
+    printk("rpi_sleep thread %d sleep until %d\n", cur_thread->tid, sleep_until[cur_thread->tid]);
+    rpi_yield();
 }
 
 // void rpi_init_trampoline(void (*code)(void *arg), void *arg, void *func_addr) {

@@ -80,4 +80,5 @@ static void Q_insert_after(Q_t *q, E *e, E *e_new) {
         e->next = e_new;
     }
 }
+
 #endif
