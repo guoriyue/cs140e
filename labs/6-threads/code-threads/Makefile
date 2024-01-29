@@ -37,7 +37,7 @@ STAFF_OBJS += staff-kmalloc.o
 # PROGS = $(wildcard ./1-test*.c)
 
 # all the tests.  
-# PROGS = $(wildcard ./[234567]-test*.c)
+PROGS = $(wildcard ./[234567]-test*.c)
 
 # PROGS = $(wildcard ./1-test*.c)
 # PROGS = 1-test-run-one.c
@@ -51,7 +51,7 @@ STAFF_OBJS += staff-kmalloc.o
 ######################################################################
 # should not have to modify below.
 #
-PROGS = test-extension.c
+# PROGS = test-extension.c
 
 CAN_EMIT=0
 ALLPROG := $(wildcard ./[34567]-test*.c)

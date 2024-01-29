@@ -189,38 +189,38 @@ void rpi_exit(int exitcode) {
     }
     else {
         // rpi_yield();
-        // rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
-        while (1) {
-            unsigned clk = timer_get_usec();
-            printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
-            if (sleep_until[cur_thread->tid]) {
-                if (clk >= sleep_until[cur_thread->tid]) {
-                    sleep_until[cur_thread->tid] = 0;
-                    // printk("wake up thread %d\n", cur_thread->tid);
-                    rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
-                    break;
-                }
-                else {
-                    // printk("thread %d still sleeping\n", cur_thread->tid);
-                    Q_append(&runq, cur_thread);
-                    cur_thread = Q_pop(&runq);
-                    // Q_append(&runq, cur_thread);
-                    // rpi_yield();
-                    // jump over all sleeping threads
-                    // otherwise might switch from 9 to 10 instead of 2 to 10
+        rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+        // while (1) {
+        //     unsigned clk = timer_get_usec();
+        //     printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
+        //     if (sleep_until[cur_thread->tid]) {
+        //         if (clk >= sleep_until[cur_thread->tid]) {
+        //             sleep_until[cur_thread->tid] = 0;
+        //             // printk("wake up thread %d\n", cur_thread->tid);
+        //             rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+        //             break;
+        //         }
+        //         else {
+        //             // printk("thread %d still sleeping\n", cur_thread->tid);
+        //             Q_append(&runq, cur_thread);
+        //             cur_thread = Q_pop(&runq);
+        //             // Q_append(&runq, cur_thread);
+        //             // rpi_yield();
+        //             // jump over all sleeping threads
+        //             // otherwise might switch from 9 to 10 instead of 2 to 10
 
-                }
-            }
-            else {
-                // printk("thread %d never sleeping\n", cur_thread->tid);
-                // Q_append(&runq, cur_thread);
-                // cur_thread = Q_pop(&runq);
-                // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
-                rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
-                // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
-                // break;
-            }
-        }
+        //         }
+        //     }
+        //     else {
+        //         // printk("thread %d never sleeping\n", cur_thread->tid);
+        //         // Q_append(&runq, cur_thread);
+        //         // cur_thread = Q_pop(&runq);
+        //         // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+        //         rpi_cswitch(&free_thread->saved_sp, cur_thread->saved_sp);
+        //         // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+        //         // break;
+        //     }
+        // }
     }
     // should never return.
     not_reached();
@@ -246,46 +246,46 @@ void rpi_yield(void) {
     if (cur_thread == old) {
         return;
     }
-    else if (sleep_until[cur_thread->tid]) {
-        while (1) {
-            unsigned clk = timer_get_usec();
-            // printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
-            if (sleep_until[cur_thread->tid]) {
-                if (clk >= sleep_until[cur_thread->tid]) {
-                    sleep_until[cur_thread->tid] = 0;
-                    // printk("wake up thread %d\n", cur_thread->tid);
-                    rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
-                    break;
-                }
-                else {
-                    // printk("thread %d still sleeping\n", cur_thread->tid);
-                    Q_append(&runq, cur_thread);
-                    cur_thread = Q_pop(&runq);
-                    // Q_append(&runq, cur_thread);
-                    // rpi_yield();
-                    // jump over all sleeping threads
-                    // otherwise might switch from 9 to 10 instead of 2 to 10
+    // else if (sleep_until[cur_thread->tid]) {
+    //     while (1) {
+    //         unsigned clk = timer_get_usec();
+    //         // printk("clk=%d, sleep_until=%d\n", clk, sleep_until[cur_thread->tid]);
+    //         if (sleep_until[cur_thread->tid]) {
+    //             if (clk >= sleep_until[cur_thread->tid]) {
+    //                 sleep_until[cur_thread->tid] = 0;
+    //                 // printk("wake up thread %d\n", cur_thread->tid);
+    //                 rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+    //                 break;
+    //             }
+    //             else {
+    //                 // printk("thread %d still sleeping\n", cur_thread->tid);
+    //                 Q_append(&runq, cur_thread);
+    //                 cur_thread = Q_pop(&runq);
+    //                 // Q_append(&runq, cur_thread);
+    //                 // rpi_yield();
+    //                 // jump over all sleeping threads
+    //                 // otherwise might switch from 9 to 10 instead of 2 to 10
 
-                }
-            }
-            else {
-                // printk("thread %d never sleeping\n", cur_thread->tid);
-                // Q_append(&runq, cur_thread);
-                // cur_thread = Q_pop(&runq);
-                // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
-                if (cur_thread == old) {
-                    return;
-                } else {
-                    rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
-                    break;
-                }
-                // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
-                // break;
-            }
-        }
-    }
+    //             }
+    //         }
+    //         else {
+    //             // printk("thread %d never sleeping\n", cur_thread->tid);
+    //             // Q_append(&runq, cur_thread);
+    //             // cur_thread = Q_pop(&runq);
+    //             // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+    //             if (cur_thread == old) {
+    //                 return;
+    //             } else {
+    //                 rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+    //                 break;
+    //             }
+    //             // rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
+    //             // break;
+    //         }
+    //     }
+    // }
     else {
-        // th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
+        th_trace("switching from tid=%d to tid=%d\n", old->tid, cur_thread->tid);
         rpi_cswitch(&old->saved_sp, cur_thread->saved_sp);
     }
 }
