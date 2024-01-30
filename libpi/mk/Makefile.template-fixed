@@ -43,6 +43,10 @@ endif
 ifneq ($(RUN),0)
     RUN_PROGS = run
 endif
+ifdef START_ASM
+	START = $(BUILD_DIR)/$(START_ASM:.S=.o)
+    $(info "Setting <START> to $(START)");
+endif
 
 ifdef BOOTLOADER
     export BOOTLOADER
@@ -114,7 +118,8 @@ all_tags := $(COMMON_SRC) $(PROGS) $(headers)
 # update the compilation include flags to look in all directories.
 # this will not work great if same .h name is used in different
 # directories.
-INC += $(foreach d, $(built_dirs), -I$(d))
+
+# INC += -I. $(foreach d, $(built_dirs), -I$(d))
 
 DEPFLAGS =  -MT $@ -MMD -MP -MF $(BUILD_DIR)/$*.d
 
@@ -141,7 +146,7 @@ endif
 
 all:: $(BUILD_DIR)  libs $(LIB) $(progs_bin) $(LIBNAME) $(RUN_PROGS) 
 
-$(BUILD_DIR):  # FORCE
+$(BUILD_DIR):  FORCE
 	@mkdir -p $(BUILD_DIR)
 
 .PHONY: print
@@ -156,6 +161,8 @@ print:
 	@echo "VPATH=<$(VPATH)>"
 	@echo "LIBS=<$(LIBS)>"
 	@echo "LINK_DEPS=<$(LINK_DEPS)>"
+	@echo "START=<$(START)>"
+	@echo "BUILD_DIR=<$(BUILD_DIR)>"
 
 .PHONY: FORCE
 FORCE:
@@ -189,7 +196,7 @@ endif
 $(built_deps):
 $(built_objs): 
 $(BUILD_DIR)/%.o: %.c  $(BUILD_DIR)/%.d $(DEPS)  | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INC) $(DEPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 %.o:%.S  # remove builtin rule for .S
 %.o:%.s  # remove builtin rule for .s
@@ -199,7 +206,7 @@ $(START:.o=.d):
 $(built_deps):
 $(built_objs):
 $(BUILD_DIR)/%.o: %.S $(BUILD_DIR)/%.d $(DEPS)  | $(BUILD_DIR)
-	$(CC) $(CPP_ASFLAGS) $(INC) $(DEPFLAGS) -c $< -o $@
+	$(CC) $(CPP_ASFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # b/c of our explicit dependencies on .d files, we tell
 # 'make' not to panic if no .d exists since it will
@@ -271,4 +278,17 @@ clean::
 	rm -rf $(BUILD_DIR) $(progs_bin) $(progs_list) $(LIBNAME)  $(LIBNAME).list
 	rm -f *~ tags Makefile.bak  *.test
 
-.PHONY: libs all tags clean FORCE run check
+.PHONY: libs all tags clean run check
+
+####################################################################
+# TODO: rip out all the libraries and run make on them.  
+
+# # Function to define a rule for each library
+# define library_rule
+# $(1): 
+#    @echo "Rebuilding $(1)"
+#	make -C $(abspath $(1))  $(notdir $(1))
+# endef
+
+# Use foreach and eval to create a rule for each library
+# $(foreach lib,$(LIBS),$(eval $(call library_rule,$(lib))))
