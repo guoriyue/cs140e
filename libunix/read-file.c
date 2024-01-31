@@ -27,5 +27,32 @@ void *read_file(unsigned *size, const char *name) {
     //    - fclose() the file descriptor
     //    - make sure any padding bytes have zeros.
     //    - return it.   
-    unimplemented();
+    // unimplemented();
+    struct stat s;
+
+    // printf("name: %s\n", name);
+    
+    if (stat(name, &s) < 0) {
+        panic("stat");
+    }
+    // printf("s.st_size %d\n", s.st_size);
+    // off_t off = s.st_size;
+    // printf("off: %lld\n", off);
+    *size = s.st_size;
+    int padding = (4 - (*size % 4)) % 4;
+    unsigned rounded_size = *size + padding;
+
+    void *buf = malloc(rounded_size);
+    int fd = open(name, O_RDONLY);
+    if (*size == 0) {
+        return buf;
+    }
+    if (read_exact(fd, buf, *size) < 0) {
+        panic("read");
+    }
+    close(fd);
+    for (unsigned i = *size; i < rounded_size; i++) {
+        ((char *)buf)[i] = 0;
+    }
+    return buf;
 }
