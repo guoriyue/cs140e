@@ -11,7 +11,7 @@
 static const char *ttyusb_prefixes[] = {
     "ttyUSB",	// linux
     "ttyACM",   // linux
-    "cu.SLAB_USB", // mac os
+    // "cu.SLAB_USB", // mac os
     "cu.usbserial", // mac os
     // if your system uses another name, add it.
 	0
@@ -48,6 +48,7 @@ char *find_ttyusb(void) {
     }
     char *name = malloc(strlen(namelist[0]->d_name) + 1);
     strcpy(name, namelist[0]->d_name);
+    printf("\n\ntina:  %s\n\n\n", name);
     return name;
 }
 
@@ -69,6 +70,7 @@ char *find_ttyusb_last(void) {
     // unimplemented();
     struct dirent **namelist;
     int n = scandir("/dev", &namelist, filter, alphasort);
+    // printf("n: %d\n", n);
     if (n == 0) {
         panic("no ttyusb devices found");
     }
@@ -76,8 +78,9 @@ char *find_ttyusb_last(void) {
         panic("more than one ttyusb device found");
     }
     qsort(namelist, n, sizeof(struct dirent *), compare_mtime);
-    char *name = malloc(strlen(namelist[n-1]->d_name) + 1);
-    strcpy(name, namelist[n-1]->d_name);
+    char *name = malloc(5 + strlen(namelist[0]->d_name) + 1);
+    strcpy(name, "/dev/");
+    strcpy(name + 5, namelist[0]->d_name);
     return name;
 }
 
@@ -88,6 +91,7 @@ char *find_ttyusb_first(void) {
     // unimplemented();
     struct dirent **namelist;
     int n = scandir("/dev", &namelist, filter, alphasort);
+    // printf("n: %d\n", n);
     if (n == 0) {
         panic("no ttyusb devices found");
     }
@@ -95,7 +99,8 @@ char *find_ttyusb_first(void) {
         panic("more than one ttyusb device found");
     }
     qsort(namelist, n, sizeof(struct dirent *), compare_mtime);
-    char *name = malloc(strlen(namelist[0]->d_name) + 1);
-    strcpy(name, namelist[0]->d_name);
+    char *name = malloc(5 + strlen(namelist[0]->d_name) + 1);
+    strcpy(name, "/dev/");
+    strcpy(name + 5, namelist[0]->d_name);
     return name;
 }

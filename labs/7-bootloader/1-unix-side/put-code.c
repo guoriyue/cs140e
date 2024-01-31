@@ -206,8 +206,12 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     while ((op = get_op(fd)) != BOOT_SUCCESS) {
         output("expected BOOT_SUCCESS, got <%x>: discarding.\n", op);
     }
-    char c;
-    while (c = get_uint8(fd) != '\0') {
+
+    while (1) {
+        char c = (char) get_uint8(fd);
+        if (c == '\0') {
+            break;
+        }
         output("%c", c);
     }
 
