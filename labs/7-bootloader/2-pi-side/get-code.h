@@ -18,7 +18,7 @@
 #define __GETCODE_H__
 #include "boot-crc32.h"  // has the crc32 implementation.
 #include "boot-defs.h"   // protocol opcode values.
-
+#include "memmap.h"
 /***************************************************************
  * Helper routines.  You shouldn't need to modify these for
  * the initial version.
@@ -115,7 +115,18 @@ boot_err(uint32_t error_opcode, const char *msg) {
 //     counter can overflow.
 static unsigned 
 has_data_timeout(unsigned timeout) {
-    boot_todo("has_data_timeout: implement this routine");
+    // boot_todo("has_data_timeout: implement this routine");
+    // 
+    uint32_t s = timer_get_usec();
+    while(1) {
+        uint32_t e = timer_get_usec();
+        if ((uart_has_data() == 1)) {
+            return 1;
+        }
+        if ((e - s) >= timeout) {
+            return 0;
+        }
+    }
     return 0;
 }
 
@@ -137,7 +148,7 @@ static void wait_for_data(unsigned usec_timeout) {
         boot_put32(GET_PROG_INFO);
     } while(!has_data_timeout(usec_timeout));
     return;
-    boot_todo("wait_for_data: implement this routine");
+    // boot_todo("wait_for_data: implement this routine");
 }
 
 // IMPLEMENT this routine.
@@ -165,8 +176,8 @@ uint32_t get_code(void) {
         clean_reboot();
     }
     
-    boot_put32(GET_CODE);
-    boot_put32(cksum);
+    // boot_put32(GET_CODE);
+    // boot_put32(cksum);
     
     
 
@@ -191,17 +202,37 @@ uint32_t get_code(void) {
 
     // extern uint32_t  __prog_end__[];
     // extern uint32_t  __heap_start__[];
-
-    if (__PROG_END__ < addr + nbytes) {
+    uint32_t start_addr = (uint32_t) put32;
+    if ((*__prog_end__ < addr + nbytes && *__prog_end__ > addr) || (start_addr < addr + nbytes && start_addr > addr)) {
         boot_err(BOOT_ERROR, "binary will collide with the bootloader code\n");
         clean_reboot();
     }
+    
+
+
+
+    // 4. send [GET_CODE, cksum] back.
+    // boot_todo("send [GET_CODE, cksum] back\n");
+
+    boot_put32(GET_CODE);
+    boot_put32(cksum);
+
+    // 5. we expect: [PUT_CODE, <code>]
+    //  read each sent byte and write it starting at 
+    //  <addr> using PUT8
+    //
+    // common mistake: computing the offset incorrectly.
+    // boot_todo("boot_get8() each code byte and use PUT8() to write it to memory");
 
     uint32_t put_code_op = boot_get32();
     for (int i = 0; i < nbytes; i++) {
         PUT8(addr + i, boot_get8());
     }
 
+    // 6. verify the cksum of the copied code using:
+    //         boot-crc32.h:crc32.
+    //    if fails, abort with a BOOT_ERROR.
+    // boot_todo("verify the checksum of copied code");
     uint32_t put_code_cksum = crc32((void *)addr, nbytes);
 
     if (put_code_cksum != cksum) {
@@ -211,29 +242,12 @@ uint32_t get_code(void) {
         boot_put32(BOOT_SUCCESS);
     }
 
-
-
-    // 4. send [GET_CODE, cksum] back.
-    // boot_todo("send [GET_CODE, cksum] back\n");
-
-    // 5. we expect: [PUT_CODE, <code>]
-    //  read each sent byte and write it starting at 
-    //  <addr> using PUT8
-    //
-    // common mistake: computing the offset incorrectly.
-    boot_todo("boot_get8() each code byte and use PUT8() to write it to memory");
-
-    // 6. verify the cksum of the copied code using:
-    //         boot-crc32.h:crc32.
-    //    if fails, abort with a BOOT_ERROR.
-    boot_todo("verify the checksum of copied code");
-
     // 7. send back a BOOT_SUCCESS!
-    boot_putk("<PUT YOUR NAME HERE>: success: Received the program!");
-    boot_todo("fill in your name above");
+    boot_putk("Mingfei Guo: success: Received the program!");
+    // boot_todo("fill in your name above");
 
-    // woo!
-    boot_put32(BOOT_SUCCESS);
+    // // woo!
+    // boot_put32(BOOT_SUCCESS);
 
     // We used to have these delays to stop the unix side from getting 
     // confused.  I believe it's b/c the code we call re-initializes the 
