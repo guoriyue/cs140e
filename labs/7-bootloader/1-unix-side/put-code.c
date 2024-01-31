@@ -176,6 +176,12 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     trace_put32(fd, n);
     trace_put32(fd, crc32(buf,n));
 
+    // TRACE:PUT32:8000 
+    // TRACE:PUT32:4740 
+    // TRACE:PUT32:9de5b2ab 
+    // TRACE:GET32:55556666 
+    // TRACE:GET32:9de5b2ab 
+
     // 2. drain any extra GET_PROG_INFOS
     // todo("drain any extra GET_PROG_INFOS");
 
@@ -188,7 +194,7 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     // 3. check that we received a GET_CODE
     // todo("check that we received a GET_CODE");
     boot_check(fd, "expected GET_CODE", GET_CODE, op);
-    uint32_t cksum = get_uint32(fd);
+    uint32_t cksum = get_op(fd);
     if (cksum != crc32(buf, n)) {
         boot_output("checksum diff: expected %x, got %x\n", crc32(buf, n), cksum);
         panic("checksum diff\n");
@@ -205,15 +211,16 @@ void simple_boot(int fd, uint32_t boot_addr, const uint8_t *buf, unsigned n) {
     // todo("wait for BOOT_SUCCESS");
     while ((op = get_op(fd)) != BOOT_SUCCESS) {
         output("expected BOOT_SUCCESS, got <%x>: discarding.\n", op);
+        get_uint8(fd);
     }
 
-    while (1) {
-        char c = (char) get_uint8(fd);
-        if (c == '\0') {
-            break;
-        }
-        output("%c", c);
-    }
+    // while (1) {
+    //     char c = (char) get_uint8(fd);
+    //     if (c == '\0') {
+    //         break;
+    //     }
+    //     output("%c", c);
+    // }
 
     boot_output("bootloader: Done.\n");
 }
