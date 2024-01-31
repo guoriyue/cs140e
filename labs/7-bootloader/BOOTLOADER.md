@@ -29,6 +29,7 @@ This is a stripped down version (explained more below):
                                       // discard garbage
                                       while(!<GET_PROG_INFO>)
                                         boot_get8();  // get 8 bits
+                                      // we need a while loop because we need o discard garbage?
                                       boot_put32(PUT_PROG_INFO);
                                       boot_put32(ARMBASE);
                                       boot_put32(nbytes);
@@ -70,6 +71,10 @@ More descriptively:
 
      (Q1: Why can't the pi simply send a single `GET_PROG_INFO` request?)
 
+     nothing would happen if only once
+     2 threads
+     because the pi might not working
+
   2. When the unix side receives a `GET_PROG_INFO`, it sends back
      `PUT_PROG_INFO` along with three other 32-bit words: the constant
      to load the code at (for the moment, `ARMBASE` which is `0x8000`),
@@ -78,6 +83,8 @@ More descriptively:
 
      (Q2: Why not skip step 1 and simply have the unix side start first
      with this step?)
+
+     // directly send code instead of send and get because we want to guarantee always send all code
 
      IMPORTANT: the Unix side may have to discard unexpected bytes left in
      the tty until it hits a `GET_PROG_INFO`.  Two possible causes.  One,
