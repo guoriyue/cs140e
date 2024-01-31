@@ -155,7 +155,20 @@ uint32_t get_code(void) {
 
     // 2. expect: [PUT_PROG_INFO, addr, nbytes, cksum] 
     //    we echo cksum back in step 4 to help debugging.
-    boot_todo("wait for laptop/server response: echo checksum back");
+    // boot_todo("wait for laptop/server response: echo checksum back");
+    uint32_t put_prog_info_op = boot_get32();
+    addr = boot_get32();
+    unsigned nbytes = boot_get32();
+    uint32_t cksum = boot_get32();
+    if(put_prog_info_op != PUT_PROG_INFO) {
+        boot_err(BOOT_ERROR, "expected PUT_PROG_INFO\n");
+        clean_reboot();
+    }
+    
+    boot_put32(GET_CODE);
+    boot_put32(cksum);
+    
+    
 
     // 3. If the binary will collide with us, abort with a BOOT_ERROR. 
     // 
@@ -165,10 +178,43 @@ uint32_t get_code(void) {
     // 
     //    more general: use address of PUT32 and __PROG_END__ to detect: 
     //    see libpi/memmap and the memmap.h header for definitions.
-    boot_todo("check that binary will not hit the bootloader code");
+    // boot_todo("check that binary will not hit the bootloader code");
+
+    // extern uint32_t  __code_start__[];
+    // extern uint32_t  __code_end__[];
+
+    // extern uint32_t  __data_start__[];
+    // extern uint32_t  __data_end__[];
+
+    // extern uint32_t  __bss_start__[];
+    // extern uint32_t  __bss_end__[];
+
+    // extern uint32_t  __prog_end__[];
+    // extern uint32_t  __heap_start__[];
+
+    if (__PROG_END__ < addr + nbytes) {
+        boot_err(BOOT_ERROR, "binary will collide with the bootloader code\n");
+        clean_reboot();
+    }
+
+    uint32_t put_code_op = boot_get32();
+    for (int i = 0; i < nbytes; i++) {
+        PUT8(addr + i, boot_get8());
+    }
+
+    uint32_t put_code_cksum = crc32((void *)addr, nbytes);
+
+    if (put_code_cksum != cksum) {
+        boot_err(BOOT_ERROR, "checksum do not match\n");
+        clean_reboot();
+    } else {
+        boot_put32(BOOT_SUCCESS);
+    }
+
+
 
     // 4. send [GET_CODE, cksum] back.
-    boot_todo("send [GET_CODE, cksum] back\n");
+    // boot_todo("send [GET_CODE, cksum] back\n");
 
     // 5. we expect: [PUT_CODE, <code>]
     //  read each sent byte and write it starting at 
