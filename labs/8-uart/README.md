@@ -372,3 +372,9 @@ Adding input is good.  Two issues:
      I'd have your code read until you see a start bit, delay `T/2` and then
      start sampling the data bits so that you are right in the center of 
      the bit transmission.
+
+
+
+TX will be one and change to 0 (decided by brartrate).
+
+RX 1.5 x of transition

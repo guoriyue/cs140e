@@ -14,7 +14,9 @@ void sw_uart_put8(sw_uart_t *uart, uint8_t c) {
              u = n,
              s = cycle_cnt_read();
 
-    todo("implement this code\n");
+    // wait_ncycles_exact
+
+    // todo("implement this code\n");
 }
 
 // do this second: you can type in pi-cat to send stuff.
@@ -28,6 +30,8 @@ int sw_uart_get8_timeout(sw_uart_t *uart, uint32_t timeout_usec) {
         return -1;
 
     todo("implement this code\n");
+    // int read = get32((volatile unsigned*) uart->rx);
+    // return read;
 }
 
 // finish implementing this routine.  
@@ -48,7 +52,11 @@ sw_uart_t sw_uart_init_helper(unsigned tx, unsigned rx,
         panic("too much diff: cyc_per_bit = %d * baud = %d\n", 
             cyc_per_bit, cyc_per_bit * baud);
 
-    todo("setup rx,tx and initial state of tx pin.");
+    // todo("setup rx,tx and initial state of tx pin.");
+    gpio_set_function(tx, GPIO_FUNC_ALT0);
+    gpio_set_function(rx, GPIO_FUNC_ALT0);
+    gpio_set_pulldown(tx);
+    gpio_set_pulldown(rx);
 
     return (sw_uart_t) { 
             .tx = tx, 

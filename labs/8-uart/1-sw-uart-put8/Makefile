@@ -11,7 +11,7 @@ PROGS := $(wildcard [123]*-test*.c)
 
 # all of these should be turned off for checkoff.  
 # to use your sw-uart uncomment:
-# COMMON_SRC :=  sw-uart.c
+COMMON_SRC :=  sw-uart.c
 # to use ours:
 # STAFF_OBJS := staff-sw-uart.o
 
