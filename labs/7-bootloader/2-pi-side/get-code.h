@@ -243,7 +243,7 @@ uint32_t get_code(void) {
     }
 
     // 7. send back a BOOT_SUCCESS!
-    boot_putk("Mingfei Guo: success: Received the program!");
+    // boot_putk("UART Mingfei Guo: success: Received the program!");
     // boot_todo("fill in your name above");
 
     // // woo!

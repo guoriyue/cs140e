@@ -39,6 +39,7 @@ void uart_init(void) {
     // Disable interrupts.
     // Configure: 115200 Baud, 8 bits, 1 start bit, 1 stop bit. No flow control.
     // Enable tx/rx. It should be working!
+    // uart_disable();
     uint8_t enables_mask = 0b1;
     uint8_t enables_state = get32(AUX_ENABLES);
     enables_state = enables_state | enables_mask;
@@ -46,12 +47,12 @@ void uart_init(void) {
     // disable tx/rx. No flow control.
     put32(AUX_MU_CNTL_REG, 0b00000000);
     // Find and clear all parts of its state
-
+    put32(AUX_MU_IIR_REG, 0b00000110);
     // Disable interrupts.
     put32(AUX_MU_IER_REG, 0b00000000);
     // Configure: 115200 Baud, 8 bits, 1 start bit, 1 stop bit.
     put32(AUX_MU_BAUD_REG, 270);
-    put32(AUX_MU_LCR_REG, 0b00000001);
+    put32(AUX_MU_LCR_REG, 0b00000011);
     dev_barrier();
     gpio_set_function(14, GPIO_FUNC_ALT5);
     gpio_set_function(15, GPIO_FUNC_ALT5);
@@ -61,6 +62,7 @@ void uart_init(void) {
 
 // disable the uart.
 void uart_disable(void) {
+    uart_flush_tx();
     uint8_t enables_mask = 0b0;
     uint8_t enables_state = get32(AUX_ENABLES);
     enables_state = enables_state & enables_mask;

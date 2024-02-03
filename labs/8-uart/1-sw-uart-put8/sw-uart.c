@@ -55,7 +55,7 @@ int sw_uart_get8_timeout(sw_uart_t *uart, uint32_t timeout_usec) {
     int result = 0;
     for(int i = 0; i < 8; i++) {
         int read = gpio_read(rx);
-        result |= (read << i);
+        result |= (read << (8-i));
         wait_ncycles_exact(s, u);
         u += n;
     }
