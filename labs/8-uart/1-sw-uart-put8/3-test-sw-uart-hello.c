@@ -13,7 +13,7 @@ void notmain(void) {
 #endif
 
     // use pin 14 for tx, 15 for rx
-    sw_uart_t u = sw_uart_init(14,15, 115200);
+    sw_uart_t u = sw_uart_init(14, 15, 115200);
 
 
     sw_uart_putk(&u, "TRACE: from sw-uart: WORKED!!\n");

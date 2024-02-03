@@ -2,8 +2,8 @@
 # PROGS := 0-align-test.c 0-delay-test.c
 
 # run all three tests 
-PROGS := 1-test-wait-ncycles.c
-# PROGS += 2-test-bitbang-put8.c
+# PROGS := 1-test-wait-ncycles.c
+PROGS += 2-test-bitbang-put8.c
 # PROGS += 3-test-sw-uart-hello.c
 
 # checkoff.
@@ -19,7 +19,7 @@ COMMON_SRC :=  sw-uart.c
 OPT_LEVEL = -O3
 
 # swap these if your bootloader doesn't work.
-BOOTLOADER = my-install
+# BOOTLOADER = my-install
 BOOTLOADER = pi-install
 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed

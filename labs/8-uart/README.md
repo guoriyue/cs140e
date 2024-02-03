@@ -392,3 +392,33 @@ Adding input is good.  Two issues:
 TX will be one and change to 0 (decided by brartrate).
 
 RX 1.5 x of transition
+
+1. turn uart on first
+2. bootload already setup uart?
+3. turn on AUX regs 5004 AUXENB read after write
+4. before talk to aux device 
+5. set aux then barrier a memory barrier before gpio
+6. set page 102 gpio 14 15 ALT5
+7. disable CNTL we don't need barrier because same device
+8. IO_REG read low 7 bits and then write (DLAB?)
+9. set boardrate 8n1 AUX_MU_BAUD
+10. page 11 formula boardrate 250 * 1000 * 1000 271
+
+set 8 bit LCR set for 8 bit mode
+
+IO send and save
+
+Interrupt disable
+
+CLR use
+
+LCR set
+
+LSR ready or not?
+
+turn on enable
+gpio
+mem bar
+set borad clearify mode interrupt
+
+printk is ok
