@@ -89,6 +89,7 @@ static unsigned trace_on_p = 0, trace_ops = 0;
 static inline void trace_on(void) { trace_on_p = 1; }
 static inline void trace_off(void) { trace_on_p = 0; }
 
+// if <trace_on_p> != 0, emit a trace statement
 #define trace(msg, args...) do {                                        \
     if(trace_on_p) {                                                    \
         output("TRACE:%d: " msg, trace_ops++, ##args);                                   \
@@ -113,23 +114,25 @@ static inline void trace_off(void) { trace_on_p = 0; }
 
 #define GPIO_BASE 0x20200000
 
-
 // the locations we track.
 enum {
     gpio_fsel0 = (GPIO_BASE + 0x00),
     gpio_fsel1 = (GPIO_BASE + 0x04),
     gpio_fsel2 = (GPIO_BASE + 0x08),
     gpio_fsel3 = (GPIO_BASE + 0x0c),
+    gpio_fsel4 = gpio_fsel3 + 4,
     gpio_set0  = (GPIO_BASE + 0x1C),
     gpio_clr0  = (GPIO_BASE + 0x28),
+    gpio_set1  = gpio_set0 + 4,
+    gpio_clr1  = gpio_clr0 + 4,
     gpio_lev0  = (GPIO_BASE + 0x34),
 
     aux_periph = (GPIO_BASE + 0x15004),
     uart_start = (GPIO_BASE + 0x15040),
+    uart_cntrl = (GPIO_BASE + 0x15060),
     uart_end = (uart_start + 12*4)
+
 };
-
-
 
 // the value for each location.
 static unsigned 
@@ -137,51 +140,130 @@ static unsigned
         gpio_fsel1_v,
         gpio_fsel2_v,
         gpio_fsel3_v,
+        // do a hack to set initial value.
+        gpio_fsel4_v = ~0,      
         gpio_set0_v,
         gpio_clr0_v,
+        gpio_set1_v,
+        gpio_clr1_v,
         aux_periph_v;
 
-// simple UART memory model
-uint32_t * uart_addr_lookup(uint32_t addr) {
-    static uint32_t uart_val[uart_end - uart_start + 1];
+static uint32_t dev_barrier_cnt = 0;
 
-    if(addr >= uart_start && addr < uart_end) {
-        uint32_t i = (addr - uart_start)/4;
-        assert(i < 12);
-        return &uart_val[i];
+void rpi_wait(void) {}
+void dev_barrier(void) {
+    trace("dev_barrier [%d]\n", dev_barrier_cnt++);
+}
+
+typedef struct {
+    uint32_t addr;
+    uint32_t v;
+    uint32_t epoch;
+} dev_mem_t;
+static inline dev_mem_t dev_mem_mk(uint32_t addr, uint32_t v) {
+    return (dev_mem_t){.addr=addr, .v=v, .epoch=dev_barrier_cnt};
+}
+
+enum { uart_n = (uart_end - uart_start)/4 + 1 };
+static dev_mem_t uart_mem[uart_n];
+
+
+// simple UART memory model
+static dev_mem_t * uart_addr_lookup(uint32_t addr) {
+    if(addr < uart_start || addr > uart_end)
+        return 0;
+
+    assert(addr%4==0);
+    unsigned index = (addr - uart_start)/4;
+    assert(index < uart_n);
+
+    dev_mem_t *m = &uart_mem[index];
+    assert(m->addr == addr);
+    return m;
+}
+
+static void uart_mem_init(void) {
+    uint32_t addr= uart_start; 
+
+    for(int i = 0; i < uart_n; i++, addr += 4)
+        uart_mem[i] = dev_mem_mk(addr,fake_random());
+
+    for(uint32_t addr= uart_start; addr < uart_end; addr+=4) {
+        dev_mem_t *p = uart_addr_lookup(addr);
+        assert(p);
+        assert(p->addr == addr);
     }
-    return 0;
 }
+static void uart_mem_flush(uint32_t earliest_dev) {
+    for(int i = 0; i < uart_n; i++) {
+        dev_mem_t *p = &uart_mem[i];
+        if(p->epoch >= earliest_dev)
+            trace("UART: PUT32(0x%x) = 0x%x [buffered]\n", p->addr, p->v);
+    }
+}
+
+
 int uart_addr_get(uint32_t *v, uint32_t addr) {
-    uint32_t *p = uart_addr_lookup(addr);
+    dev_mem_t *p = uart_addr_lookup(addr);
     if(!p)
         return 0;
-    *v = *p;
+    *v = p->v;
     return 1;
 }
+
+static int uart_off_p = 0;
+
 int uart_addr_put(uint32_t addr, uint32_t v) {
-    uint32_t *p = uart_addr_lookup(addr);
+    dev_mem_t *p = uart_addr_lookup(addr);
+
     if(!p)
         return 0;
-    *p = v;
+
+    p->v = v;
+    p->epoch = dev_barrier_cnt;
+    if(uart_off_p == 0)
+        trace("UART: PUT32(0x%x) = 0x%x [is on! off=%d]\n", addr, v, uart_off_p);
+
+    if(addr == uart_cntrl) {
+        switch(v&0b11) {
+        case 0:
+            uart_off_p = dev_barrier_cnt;
+            assert(dev_barrier_cnt);
+            trace("UART: turning UART off PUT32(%x)=%x\n", addr,v);
+            break;
+        case 0b11:
+            uart_off_p = 0;
+            uart_mem_flush(dev_barrier_cnt);
+            trace("UART: turned UART on PUT32(%x)=%x\n", addr,v);
+            break;
+        default:
+            panic("illegal value to turn off/on uart: %x\n", v);
+        }
+    }
+
     return 1;
 }
+
 
 // same, but takes <addr> as a uint32_t
 void PUT32(uint32_t addr, uint32_t v) {
     if(!trace_on_p)
-        output("initializing PUT32(0x%x) = 0x%x\n", addr, v);
-    trace("PUT32(0x%x) = 0x%x\n", addr, v);
+        output("fake-pi: initializing PUT32(0x%x) = 0x%x\n", addr, v);
     if(uart_addr_put(addr,v))
         return;
+    trace("PUT32(0x%x) = 0x%x\n", addr, v);
     switch(addr) {
     case gpio_fsel0: gpio_fsel0_v = v;  break;
     case gpio_fsel1: gpio_fsel1_v = v;  break;
     case gpio_fsel2: gpio_fsel2_v = v;  break;
     case gpio_fsel3: gpio_fsel3_v = v;  break;
+    case gpio_fsel4: gpio_fsel4_v = v;  break;
     case gpio_set0:  gpio_set0_v  = v;  break;
+    case gpio_set1:  gpio_set1_v  = v;  break;
     case gpio_clr0:  gpio_clr0_v  = v;  break;
+    case gpio_clr1:  gpio_clr1_v  = v;  break;
     case aux_periph: aux_periph_v = v; break;
+
     case gpio_lev0:  panic("illegal write to gpio_lev0!\n");
     default: panic("write to illegal address: %x\n", addr);
     }
@@ -191,9 +273,17 @@ void put32(volatile void *addr, uint32_t v) {
     PUT32((uint32_t)(uint64_t)addr, v);
 }
 
-void rpi_wait(void) {}
-void dev_barrier(void) {
-    trace("dev_barrier\n");
+uint8_t GET8(uint32_t addr) {
+    assert(addr%4 == 0);
+    return GET32(addr) & 0xff;
+}
+
+void PUT8(uint32_t addr, uint8_t v) {
+    demand(addr%4 == 0, we are not handling non-4 byte aligned);
+    uint32_t x = GET32(addr);
+    x &= ~0xff;
+    x |= v;
+    PUT32(addr, x);
 }
 
 uint32_t DEV_VAL32(uint32_t x) {
@@ -201,22 +291,22 @@ uint32_t DEV_VAL32(uint32_t x) {
     return x;
 }
 
-
 // same but takes <addr> as a uint32_t
 uint32_t GET32(uint32_t addr) {
     unsigned v;
-
     if(uart_addr_get(&v, addr))
         goto found;
 
     switch(addr) {
-    case aux_periph: v = aux_periph_v; break;
     case gpio_fsel0: v = gpio_fsel0_v; break;
     case gpio_fsel1: v = gpio_fsel1_v; break;
     case gpio_fsel2: v = gpio_fsel2_v; break;
     case gpio_fsel3: v = gpio_fsel3_v; break;
-    case gpio_set0:  v = gpio_set0_v;  break;
-    case gpio_clr0:  v = gpio_clr0_v;  break;
+    case gpio_fsel4: v = gpio_fsel4_v; break;
+    // we don't allow reading these.
+    // case gpio_set0:  v = gpio_set0_v;  break;
+    // case gpio_clr0:  v = gpio_clr0_v;  break;
+
     // to fake a changing environment, we want gpio_lev0 to 
     // change --- so we return a random value for (which
     // will be roughly uniform random for a given bit).
@@ -225,9 +315,12 @@ uint32_t GET32(uint32_t addr) {
     // the raw hardware, correlating with other pins or 
     // time or ...
     case gpio_lev0:  v = fake_random();  break;
+
+
+    case aux_periph: v = aux_periph_v; break;
+
     default: panic("read of illegal address: %x\n", addr);
     }
-
 found:
     trace("GET32(0x%x) = 0x%x\n", addr,v);
     return v;
@@ -243,8 +336,13 @@ uint32_t get32(const volatile void *addr) {
 void nop(void) {
 }
 
-void fake_pi_exit(void) {
+__attribute__((noreturn)) void fake_pi_exit(void) {
     output("TRACE: pi exited cleanly: %d calls to random\n", fake_random_calls());
+    exit(0);
+}
+
+void rpi_reboot(void) {
+    output("TRACE: pi rebooted : %d calls to random\n", fake_random_calls());
     exit(0);
 }
 
@@ -252,12 +350,26 @@ void delay_cycles(unsigned ncycles) {
     trace("delaying %d cycles\n", ncycles);
 }
 
-void rpi_reboot(void) {
-    trace("rpi_reboot");
-    exit(0);
+void delay_us(unsigned usec) {
+    trace("delaying %d usec\n", usec);
+}
+void delay_ms(unsigned msec) {
+    trace("delaying %d msec\n", msec);
 }
 
-void delay_ms(unsigned u) { }
+#define FAKE_UART
+#ifndef FAKE_UART
+// when we do the UART dev driver would replace these.
+// could also use trace statements.
+int uart_put8(uint8_t c) {
+    putchar(c);
+    return c;
+}
+void uart_flush_tx(void) {
+    fflush(stdout);
+}
+#endif
+
 
 // initialize "device memory" and then call the pi program
 int main(int argc, char *argv[]) {
@@ -284,8 +396,12 @@ int main(int argc, char *argv[]) {
     PUT32(gpio_fsel1, fake_random());
     PUT32(gpio_fsel2, fake_random());
     PUT32(gpio_fsel3, fake_random());
+
     PUT32(gpio_set0,  fake_random());
     PUT32(gpio_clr0,  fake_random());
+
+    uart_mem_init();
+
     trace_on();
 
     // extension: run in a subprocess to isolate
