@@ -1,4 +1,4 @@
-SUBDIRS=  1-sw-uart-put8 2-uart 3-fake-pi
+SUBDIRS= code
 
 .PHONY: all check clean
 all check clean: $(SUBDIRS)
@@ -18,3 +18,8 @@ clean:
 
 .PHONY: force
 	force :;
+
+checkoff:
+	make -C 1-vector-base$(STAFF)/ checkoff
+	make -C 2-gpio-int$(STAFF)/ checkoff
+	make -C 3-handlers-gpio-int$(STAFF)/ checkoff
