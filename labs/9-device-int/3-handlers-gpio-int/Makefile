@@ -10,23 +10,23 @@ STAFF_OBJS += $(CS140E_2024_PATH)/libpi/staff-objs/gpio-int.o
 
 # level 3: do N iterations of event type.
 # easiest: one type of event.
-PROGS = 3-N-rising-edge.c
+# PROGS = 3-N-rising-edge.c
 # harder: rise + fall
-PROGS = 3-N-rise-fall.c
+# PROGS = 3-N-rise-fall.c
 # hardest: everything.
-PROGS = 3-N-rise-fall-timer.c
+# PROGS = 3-N-rise-fall-timer.c # this one
 
 # level 2: combine more than one event type
 # easier
-PROGS = 2-rise-fall-edge.c
+# PROGS = 2-rise-fall-edge.c
 # has timers so is harder.
-PROGS = 2-timer-rise-fall-edge.c
+# PROGS = 2-timer-rise-fall-edge.c
 
 # level 1: easiest: do a single event once 
 # (other than for timer)
-PROGS = 1-falling-edge.c
-PROGS = 1-rising-edge.c
-PROGS = 1-timer.c
+# PROGS = 1-falling-edge.c
+# PROGS = 1-rising-edge.c
+# PROGS = 1-timer.c
 
 # everything.
 PROGS = $(wildcard [123]-*.c)
