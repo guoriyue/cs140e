@@ -14,7 +14,7 @@ static cq_t uartQ;
 
 enum { out_pin = 21, in_pin = 20 };
 static volatile unsigned n_rising_edge, n_falling_edge;
-
+unsigned last_event = 0;
 
 // client has to define this.
 void interrupt_vector(unsigned pc) {
@@ -29,7 +29,29 @@ void interrupt_vector(unsigned pc) {
     unsigned s = cycle_cnt_read();
 
     dev_barrier();
-    unimplemented();
+
+    cq_push32(&uartQ, s - last_event);
+    last_event = s;
+
+    unsigned pending = gpio_event_detected(in_pin);
+
+    if (!pending) {
+        return ;
+    }
+
+    // clear timer.
+    gpio_event_clear(in_pin);
+
+    unsigned val = gpio_read(in_pin);
+
+    if (val) {
+        n_rising_edge ++;
+    } else {
+        n_falling_edge ++;
+    }
+    
+    cq_push32(&uartQ, val);
+
     dev_barrier();
 }
 
