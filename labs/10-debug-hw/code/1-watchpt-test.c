@@ -92,9 +92,11 @@ void notmain(void) {
 
     // set watchpoint.
     assert(!cp14_wcr0_is_enabled());
-    uint32_t b = 0;
-    if(!b)
-        panic("set b to the right bits for wcr0\n");
+    // uint32_t b = 0;
+    // if(!b)
+    //     panic("set b to the right bits for wcr0\n");
+    // uint32_t b = 0b00000000100111;
+    uint32_t b = 0b00000000111111;
 
     cp14_wcr0_set(b);
     cp14_wvr0_set(null);

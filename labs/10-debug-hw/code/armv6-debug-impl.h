@@ -250,7 +250,8 @@ static inline void cp14_wcr0_disable(void) {
 // Get watchpoint fault using WFAR
 static inline uint32_t watchpt_fault_pc(void) {
     // unimplemented();
-    return cp14_wfar_get();
+    // why?
+    return cp14_wfar_get() - 8;
 }
     
 #endif
