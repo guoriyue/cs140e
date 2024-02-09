@@ -75,7 +75,7 @@ void notmain(void) {
     full_except_install(0);
     full_except_set_data_abort(watchpt_fault);
 
-    todo("enable the debug coprocessor.");
+    // todo("enable the debug coprocessor.");
     cp14_enable();
 
     /* 

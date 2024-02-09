@@ -20,4 +20,5 @@ PROGS := 1-watchpt-test.c  2-brkpt-test.c
 # PROGS := $(wildcard ./[123456]-*.c)
 
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
-include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed
+# include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed
+include $(CS140E_2024_PATH)/libpi/mk/Makefile.robust

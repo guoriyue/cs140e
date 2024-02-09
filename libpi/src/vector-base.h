@@ -3,7 +3,7 @@
 #include "libc/bit-support.h"
 #include "asm-helpers.h"
 
-#   define is_aligned(_p,_n) (((unsigned)(_p))%(_n) == 0)
+// #   define is_aligned(_p,_n) (((unsigned)(_p))%(_n) == 0)
 
 /*
  * vector base address register:
@@ -28,7 +28,8 @@ static inline int vector_base_chk(void *vector_base) {
     // todo("check that not null and alignment is correct.");
     // return 1;
     if (vector_base) {
-        if (is_aligned(vector_base, 32)) {
+        // if (is_aligned(vector_base, 32)) {
+        if ((((unsigned)(vector_base))%(32) == 0)) {
             return 1;
         }
     }
