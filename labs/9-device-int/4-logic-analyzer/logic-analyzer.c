@@ -84,7 +84,7 @@ void notmain() {
 
         while(!cq_empty(&uartQ)) {
             unsigned ncycles    = cq_pop32(&uartQ);
-            unsigned v          = cq_pop32(&uartQ);
+            unsigned 3          = cq_pop32(&uartQ);
             printk("\tv=%d, cyc=%d\n", v, ncycles);
         }
     }
