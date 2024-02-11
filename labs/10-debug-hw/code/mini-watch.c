@@ -45,8 +45,26 @@ static void watchpt_fault(regs_t *r) {
     w.is_load_p = datafault_from_ld();
     w.regs = r;
     // uint32_t addr = cp14_wvr0_get();
-    uint32_t addr = cp14_wfar_get();
-    w.fault_addr = (void *)addr;
+    
+    // uint32_t wfar = cp14_wfar_get();
+    unsigned wcr = cp14_wcr0_get();
+    unsigned val = (wcr >> 5) & 0xF;
+    unsigned shift = 0;
+    while ((val & 0x1) != 1) {
+        shift += 1;
+        val = val >> 1;
+    }
+
+    unsigned wvr = cp14_wvr0_get();
+    unsigned addr = wvr + shift;
+    printk("shift=%d\n", shift);
+    w.fault_addr = (void *)(addr);
+    // printk("wfar=%p\n", wfar);
+    // printk("addr=%p\n", addr);
+    // printk("r[0]=%p\n", r->regs[0]);
+
+    // uint32_t addr = cp14_wfar_get();
+    // w.fault_addr = (void *)addr;
     // printk("r[0]=%p\n", r->regs[0]);
     printk("watchpt fault at addr %p, pc=%p\n", w.fault_addr, w.fault_pc);
 
@@ -82,7 +100,21 @@ void mini_watch_init(watch_handler_t h, void *data) {
 void mini_watch_addr(void *addr) {
     // todo("watch <addr>");
     assert(!cp14_wcr0_is_enabled());
-    uint32_t b = 0b00000111111111; // 1 from 0-8
+    // uint32_t b = 0b00000111111111; // 1 from 0-8
+
+    uint32_t b = cp14_wcr0_get();
+    uint32_t mask = 1 << 20;
+    b &= ~mask;
+    b |= 0x1;
+    mask = 0b1111 << 5;
+    b &= ~mask;
+    unsigned shift = ((unsigned)addr % 4) + 5;
+    b |= (1 << shift);
+    // b |= (1 << 5);
+    b |= (0b11 << 3);
+    mask = 0b11 << 14;
+    b &= ~mask;
+    b |= 0b11 << 1;
     
     cp14_wcr0_set(b);
     cp14_wvr0_set((uint32_t)(addr));
@@ -97,7 +129,6 @@ void mini_watch_disable(void *addr) {
     printk("Disabling watchpoint for addr %p\n", addr);
     cp14_wvr0_set((uint32_t)(addr));
     cp14_wcr0_disable();
-    
 }
 
 // return 1 if enabled.

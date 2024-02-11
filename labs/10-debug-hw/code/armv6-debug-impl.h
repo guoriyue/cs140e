@@ -253,5 +253,5 @@ static inline uint32_t watchpt_fault_pc(void) {
     // why?
     return cp14_wfar_get() - 8;
 }
-    
+
 #endif
