@@ -93,7 +93,12 @@ void notmain(void) {
 
     // if(!b)
     //     panic("must set b to the right bits\n");
-    uint32_t b = 0b00000111111111;
+    // uint32_t b = 0b00000111111111;
+    uint32_t b = cp14_bcr0_get();
+    uint32_t mask = 0b1 << 20 | 0b1111 << 5 | 0b11 << 14 | 0b11 << 21 | 0b111;
+    uint32_t shift = ((uint32_t)foo % 4) + 5;
+    uint32_t new_v = (0b1 << shift) | (0b111);
+    b = (b & ~mask) | new_v;
 
     cp14_bcr0_set(b);
     cp14_bvr0_set((uint32_t)foo);

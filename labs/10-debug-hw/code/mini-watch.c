@@ -103,18 +103,10 @@ void mini_watch_addr(void *addr) {
     // uint32_t b = 0b00000111111111; // 1 from 0-8
 
     uint32_t b = cp14_wcr0_get();
-    uint32_t mask = 1 << 20;
-    b &= ~mask;
-    b |= 0x1;
-    mask = 0b1111 << 5;
-    b &= ~mask;
+    uint32_t mask = 0b1 << 20 | 0b1111 << 5 | 0b11 << 14 | 0b11 << 21 | 0b111;
     unsigned shift = ((unsigned)addr % 4) + 5;
-    b |= (1 << shift);
-    // b |= (1 << 5);
-    b |= (0b11 << 3);
-    mask = 0b11 << 14;
-    b &= ~mask;
-    b |= 0b11 << 1;
+    uint32_t new_v = (1 << shift) | (0b111);
+    b = (b & ~mask) | new_v;
     
     cp14_wcr0_set(b);
     cp14_wvr0_set((uint32_t)(addr));

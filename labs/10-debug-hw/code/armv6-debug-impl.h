@@ -150,7 +150,8 @@ static inline int cp14_is_enabled(void) {
 static inline void cp14_enable(void) {
     // if it's already enabled, just return?
     if(cp14_is_enabled())
-        panic("already enabled\n");
+        return;
+        // panic("already enabled\n");
 
     // for the core to take a debug exception, monitor debug mode has to be both 
     // selected and enabled --- bit 14 clear and bit 15 set.

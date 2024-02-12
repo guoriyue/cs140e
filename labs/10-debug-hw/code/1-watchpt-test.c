@@ -96,7 +96,12 @@ void notmain(void) {
     // if(!b)
     //     panic("set b to the right bits for wcr0\n");
     // uint32_t b = 0b00000000100111;
-    uint32_t b = 0b00000000111111;
+    // uint32_t b = 0b00000000111111;
+    uint32_t b = cp14_wcr0_get();
+    uint32_t mask = 0b1 << 20 | 0b1111 << 5 | 0b11 << 14 | 0b11 << 21 | 0b111;
+    uint32_t shift = 5;
+    uint32_t new_v = (0b1 << shift) | (0b111);
+    b = (b & ~mask) | new_v;
 
     cp14_wcr0_set(b);
     cp14_wvr0_set(null);
