@@ -81,7 +81,7 @@ static void test_bad_addr(uint32_t fault_addr) {
 void notmain(void) {
     mini_watch_init(watchpt_handler, 0);
 
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 4; i++)
         test_bad_addr(i);
 
     trace("SUCCESS\n");

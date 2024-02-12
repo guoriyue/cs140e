@@ -111,7 +111,7 @@ void mini_watch_addr(void *addr) {
     cp14_wcr0_set(b);
     cp14_wvr0_set((uint32_t)(addr));
 
-    trace("set watchpoint for addr %d\n", (uint32_t)addr);
+    // trace("set watchpoint for addr %d\n", (uint32_t)addr);
     assert(cp14_wcr0_is_enabled());
 }
 

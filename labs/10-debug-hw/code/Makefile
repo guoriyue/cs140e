@@ -18,10 +18,10 @@ START_ASM = staff-start.S
 # simple watchpoint test
 # PROGS := 1-watchpt-test.c  2-brkpt-test.c  
 
-# PROGS := $(wildcard [123456]-*.c)
-# PROGS := $(wildcard [6]-*.c)
+PROGS := $(wildcard [1234567]-*.c)
+# PROGS := $(wildcard [5]-*.c)
 # PROGS := $(wildcard [7]-*.c)
-PROGS := 7-mini-step-diff.c
+# PROGS := 7-mini-step-diff.c
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed
 # include $(CS140E_2024_PATH)/libpi/mk/Makefile.robust

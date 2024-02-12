@@ -32,17 +32,15 @@ static inline uint32_t mismatch_pc_set(uint32_t pc) {
     
     cp14_bvr0_set(pc);
     uint32_t b = cp14_bcr0_get();
-    uint32_t mask = 0b1 << 20 | 0b1111 << 5 | 0b11 << 14 | 0b11 << 21 | 0b111;
-    uint32_t shift = (pc % 4) + 5;
-    uint32_t new_v = (0b1 << shift) | (0b111);
+    uint32_t mask = 0b111 << 20 | 0b1111 << 5 | 0b11 << 14 | 0b111;
+    // uint32_t shift = (pc % 4) + 5;
+    uint32_t new_v = (0b1111 << 5) | (0b111) | 0b100 << 20;
     b = (b & ~mask) | new_v;
     cp14_bcr0_set(b);
     
     prefetch_flush();
 
     assert( cp14_bvr0_get() == pc);
-    printk("mis-match old pc=%x, new pc=%x\n", old_pc, pc);
-    printk("ss_on_exit=%x\n", (uint32_t)ss_on_exit);
     return old_pc;
 }
 
@@ -66,7 +64,7 @@ static inline void mismatch_off(void) {
     // make sure you do a prefetch_flush!
     // todo("turn mismatch off, but don't modify anything else");
     uint32_t b = cp14_bcr0_get();
-    b &= ~(1);
+    b &= ~(0b1);
     cp14_bcr0_set(b);
     prefetch_flush();
 }
@@ -89,7 +87,6 @@ void ss_on_exit(int exitcode) {
 // 5. use switch() to to resume.
 static void mismatch_fault(regs_t *r) {
     uint32_t pc = r->regs[15];
-    printk("11111111 mismatch fault at pc=%x\n", pc);
     // example of using intrinsic built-in routines
     if(pc == (uint32_t)ss_on_exit) {
         output("done pc=%x: resuming initial caller\n", pc);
@@ -109,7 +106,9 @@ static void mismatch_fault(regs_t *r) {
     f.regs = r;
 
     step_handler(step_handler_data, &f);
+    
 
+    mismatch_pc_set(pc);
 
     // otherwise there is a race condition if we are 
     // stepping through the uart code --- note: we could
@@ -117,11 +116,8 @@ static void mismatch_fault(regs_t *r) {
     // uart.o
     while(!uart_can_put8())
         ;
-
+    
     switchto(r);
-
-    // set the mismatch on the current pc.
-    mismatch_pc_set(pc);
 }
 
 // will look like mini_watch_init> but for
@@ -131,6 +127,7 @@ void mini_step_init(step_handler_t h, void *data) {
     assert(h);
     step_handler_data = data;
     step_handler = h;
+    printk("11111111 mini_step_init h = %x\n", (uint32_t)h);
 
     // todo("setup the rest");
 
@@ -175,14 +172,10 @@ uint32_t mini_step_run(void (*fn)(void*), void *arg) {
 
     // note: we won't fault b/c we are not at user level yet!
     mismatch_on();
-    printk("after mismatch_on\n");
-    printk("fn=%x\n", (uint32_t)fn);
     // switch to <r> save values in <start_regs>
     switchto_cswitch(&start_regs, &r);
-    printk("after switchto_cswitch\n");
     // mistmatch is off.
     mismatch_off();
-    printk("after mismatch_off\n");
 
     // return what the user set.
     return r.regs[0];

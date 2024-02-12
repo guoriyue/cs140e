@@ -12,7 +12,7 @@ SRC += ../labs/8-uart/2-uart/uart.c
 # STAFF_OBJS  +=  ./staff-objs/uart.o
 STAFF_OBJS  +=  ./staff-objs/gpio-pud.o
 STAFF_OBJS  +=  ./staff-objs/gpio-int.o 
-
+STAFF_OBJS  +=  ./staff-objs/kmalloc.o
 # you should not have to modify this variable.  
 SRC :=  $(SRC)                              \
         $(wildcard ./libc/*.[Sc])           \
