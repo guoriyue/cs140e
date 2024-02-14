@@ -122,8 +122,13 @@ imu_xyz_t accel_scale(accel_t *h, imu_xyz_t xyz) {
 // pull the reading into a circular buffer
 // (similar to device lab).
 int accel_has_data(const accel_t *h) {
-    todo("check that have data");
-    return 1;
+    // todo("check that have data");
+    // INT_STATUS page 29
+    // DATA_RDY_INT
+    uint8_t int_status = imu_rd(h->addr, INT_STATUS);
+    if (int_status & 0b1)
+        return 1;
+    return 0;
 }
 
 
@@ -133,7 +138,10 @@ int accel_has_data(const accel_t *h) {
 // i'd suggest playing w/ gdb or small C programs to see that what
 // C does matches your intuition.
 static short mg_raw(uint8_t lo, uint8_t hi) {
-    todo("combine both bytes (make sure sign extended)");
+    // todo("combine both bytes (make sure sign extended)");
+    // what sign extended?
+    short result = (hi << 8) | lo;
+    return result;
 }
 
 // sanity testing code.
@@ -170,7 +178,14 @@ accel_t mpu6050_accel_init(uint8_t addr, unsigned accel_g) {
     test_mg(-1000, 0xbf, 0xf7, 2);
 
     // initialized your accel to 2g (accel_confi_reg)
-    todo("setup accel with 2g");
+    // todo("setup accel with 2g");
+    // 2g - AFS_SEL=0
+    // XA_ST YA_ST ZA_ST self test
+    // AFS_SEL[1:0]
+    // xxx
+    imu_wr(addr, accel_config_reg, 0b00000000);
+
+    // for 20hz DLPF_CFG = 4
 
     output("accel_config_reg=%b\n", imu_rd(addr, accel_config_reg));
     return (accel_t) { .addr = addr, .g = g, .hz = 20 };
@@ -187,7 +202,8 @@ void mpu6050_reset(uint8_t addr) {
 
     // page 41: to reset device: set bit 7 = 1 in register
     // PWR_MGMT_1 (register 0x6b)
-    todo("reset device");
+    // todo("reset device");
+    imu_wr(addr, PWR_MGMT_1, 0b10000000);
 
     // XXX: we should read different registers and see that they
     // went back to startup.
@@ -202,7 +218,8 @@ void mpu6050_reset(uint8_t addr) {
     // if you do *NOT* do this, then the device we have does not work.
     // according to my reading of the data sheet, the value of 0x6b should
     // be 0 after reset.  so i don't get this.
-    todo("clear sleep mode");
+    // todo("clear sleep mode");
+    imu_wr(addr, PWR_MGMT_1, 0b00000000);
 
     delay_ms(100);
 
@@ -212,7 +229,15 @@ void mpu6050_reset(uint8_t addr) {
     //   - fifo
     // not sure if redundant after device reset --- datasheet
     // unclear --- so we do to be sure.
-    todo("reset all these");
+    // todo("reset all these");
+
+    // - FIFO_EN I2C_MST I2C_IF
+    // empty
+    // FIFO _RESET
+    // I2C_MST _RESET
+    // SIG_COND _RESET
+    imu_wr(addr, USER_CTRL, 0b01100111);
+
 
     delay_ms(100);
 
@@ -220,7 +245,8 @@ void mpu6050_reset(uint8_t addr) {
     // (INT_ENABLE) after you config (p27):
     // - latch to be held high until cleared;
     // - read to clear it.
-    todo("enable IMU interrupts so you can tell that data is ready");
+    // todo("enable IMU interrupts so you can tell that data is ready");
+    imu_wr(addr, INT_ENABLE, 0b00000001);
 }
 
 // block until there is data and then return it (raw)
@@ -252,15 +278,25 @@ imu_xyz_t accel_rd(const accel_t *h) {
     //      zout[7:0]  = 0x40
 
     // return a raw xyz point.
-    int x =  0;
-    int y =  0;
-    int z =  0;
+    // int x =  0;
+    // int y =  0;
+    // int z =  0;
 
     // NOTE:
     //  - if this doesn't work, read regs one at a time.
     //  - you'll have to comine the two 8-bit unsigned
     //    regs into a signed 16 bit number using <mg_raw>
-    todo("implement burst reads and return as unscaled x,y,z");
+    // todo("implement burst reads and return as unscaled x,y,z");
+    uint8_t xouth = imu_rd(addr, ACCEL_XOUT_H);
+    uint8_t xoutl = imu_rd(addr, accel_xout_l);
+    uint8_t youth = imu_rd(addr, accel_yout_h);
+    uint8_t youtl = imu_rd(addr, accel_yout_l);
+    uint8_t zouth = imu_rd(addr, accel_zout_h);
+    uint8_t zoutl = imu_rd(addr, accel_zout_l);
+    
+    short x = mg_raw(xoutl, xouth);
+    short y = mg_raw(youtl, youth);
+    short z = mg_raw(zoutl, zouth);
     
     return xyz_mk(x,y,z);
 }
@@ -283,6 +319,11 @@ enum {
 
     // p7
     GYRO_XOUT_H = 67,
+    GYRO_XOUT_L = 68,
+    GYRO_YOUT_H = 69,
+    GYRO_YOUT_L = 70,
+    GYRO_ZOUT_H = 71,
+    GYRO_ZOUT_L = 72,
 };
 
 static inline int 
@@ -363,14 +404,61 @@ gyro_t mpu6050_gyro_init(uint8_t addr, unsigned gyro_dps) {
     }
 
     // you'll need to set CONFIG (p13) and GYRO_CONFIG (p14)
-    todo("initialize the gyro");
+    // todo("initialize the gyro");
+    // xx
+    // EXT_SYNC_SET[2:0]
+    // DLPF_CFG[2:0]
+
+
+    // EXT_SYNC_SET.
+    // Signal changes to the FSYNC pin are latched so that short strobes may be captured. The latched FSYNC signal will be sampled at the Sampling Rate, as defined in register 25. After sampling, the latch will reset to the current FSYNC signal state.
+    // The sampled value will be reported in place of the least significant bit in a sensor data register determined by the value of EXT_SYNC_SET according to the following table.
+    // 0 Input disabled
+    // 1 TEMP_OUT_L[0]
+    // 2 GYRO_XOUT_L[0]
+    // 3 GYRO_YOUT_L[0]
+    // 4 GYRO_ZOUT_L[0]
+    // 5 ACCEL_XOUT_L[0]
+    // 6 ACCEL_YOUT_L[0]
+    // 7 ACCEL_ZOUT_L[0]
+
+    // 66 TEMP_OUT_L
+    imu_wr(addr, CONFIG, 0b00000100);
+
+    // XG_ST YG_ST ZG_ST
+    // FS_SEL[1:0]
+    // xxx
+
+    // FS_SEL
+    // Full Scale Range
+    // 0 1 2 3
+    // ± 250 °/s ± 500 °/s ± 1000 °/s ± 2000 °/s
+
+    if (dps == 250) {
+        imu_wr(addr, GYRO_CONFIG, 0b00000000);
+    } else if (dps == 500) {
+        imu_wr(addr, GYRO_CONFIG, 0b00001000);
+    } else if (dps == 1000) {
+        imu_wr(addr, GYRO_CONFIG, 0b00010000);
+    } else if (dps == 2000) {
+        imu_wr(addr, GYRO_CONFIG, 0b00011000);
+    } else {
+        panic("incorrect dps\n");
+    }
+    
     return (gyro_t) { .addr = addr, .dps = dps,  };
 }
 
 // use int or fifo to tell when data.
 int gyro_has_data(const gyro_t *h) {
-    todo("implement this");
-    return 1;
+    // todo("implement this");
+
+    uint8_t int_status = imu_rd(h->addr, INT_STATUS);
+    if (int_status & 0b1)
+        return 1;
+    return 0;
+
+    // return 1;
 }
 
 // return a single raw gyro reading.
@@ -383,9 +471,21 @@ imu_xyz_t gyro_rd(const gyro_t *h) {
     while(!gyro_has_data(h))
         ;
 
-    int x=0,y=0,z=00;
+    // int x=0,y=0,z=00;
 
     // you'll need to combine the 8-bit regs into a 16-bit using <mg_raw>
-    todo("implement this");
+    // todo("implement this");
+    uint8_t xouth = imu_rd(addr, GYRO_XOUT_H);
+    uint8_t xoutl = imu_rd(addr, GYRO_XOUT_L);
+    uint8_t youth = imu_rd(addr, GYRO_YOUT_H);
+    uint8_t youtl = imu_rd(addr, GYRO_YOUT_L);
+    uint8_t zouth = imu_rd(addr, GYRO_ZOUT_H);
+    uint8_t zoutl = imu_rd(addr, GYRO_ZOUT_L);
+    
+    short x = mg_raw(xoutl, xouth);
+    short y = mg_raw(youtl, youth);
+    short z = mg_raw(zoutl, zouth);
+
+
     return xyz_mk(x,y,z);
 }
