@@ -18,7 +18,7 @@ void place_cursor(neo_t h, int i) {
 }
 
 void notmain(void) {
-    enable_cache(); 
+    // enable_cache(); 
     gpio_set_output(pix_pin);
 
     // make sure when you implement the neopixel 

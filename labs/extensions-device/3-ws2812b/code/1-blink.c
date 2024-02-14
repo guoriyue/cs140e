@@ -13,7 +13,7 @@ enum { pix_pin = 21 };
 void notmain(void) {
     // if you don't do this, the granularity is too large for the timing
     // loop. 
-    enable_cache(); 
+    // enable_cache(); 
     gpio_set_output(pix_pin);
 
     // turn on one pixel to blue.
