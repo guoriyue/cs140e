@@ -99,13 +99,17 @@ Reading data: `i2c_read`:
      stretch timeout and there were no errors.  We shouldn't see any of
      these today.
 
+     Clear the DONE field in status since it appears it can still be
+     set from a previous invocation.
+
      Set the device address and length.
 
      Set the control reg to read and start transfer.
 
-     Wait until the transfer is done.
+     Wait until the transfer has started.
 
-  2. Send the bytes: you'll have to check that there is space.
+  2. Read the bytes: you'll have to check that there is a byte available
+     each time.
 
   3. Do the end of a transfer: use status to wait for `DONE` (p32).  Then
      check that TA is 0, and there were no errors.
