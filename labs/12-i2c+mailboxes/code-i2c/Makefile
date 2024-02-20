@@ -1,6 +1,6 @@
 # how do we drop it in?
 PROGS = 0-test-id.c
-# COMMON_SRC = i2c.c
+COMMON_SRC = i2c.c
 STAFF_OBJS = staff-i2c.o
 
 # define this if you need to give the device for your pi

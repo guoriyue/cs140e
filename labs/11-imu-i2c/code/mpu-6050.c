@@ -42,9 +42,9 @@
 // read a single device register <reg> from i2c device 
 // <addr> and return the result.
 uint8_t imu_rd(uint8_t addr, uint8_t reg) {
-    i2c_write(addr, &reg, 1);
+    i2c_write_my(addr, &reg, 1);
     uint8_t v;
-    i2c_read(addr,  &v, 1);
+    i2c_read_my(addr,  &v, 1);
     return v;
 }
 
@@ -57,7 +57,7 @@ void imu_wr(uint8_t addr, uint8_t reg, uint8_t v) {
     uint8_t data[2];
     data[0] = reg;
     data[1] = v;
-    i2c_write(addr, data, 2);
+    i2c_write_my(addr, data, 2);
 }
 
 // do a "burst read" of <n> registers into buffer <v>, where 
@@ -65,8 +65,8 @@ void imu_wr(uint8_t addr, uint8_t reg, uint8_t v) {
 //  - <base_reg> = lowest reg in sequence
 //  - <n> = total number of 8-bit registers to read.
 int imu_rd_n(uint8_t addr, uint8_t base_reg, uint8_t *v, uint32_t n) {
-    i2c_write(addr, (void*) &base_reg, 1);
-    return i2c_read(addr, v, n);
+    i2c_write_my(addr, (void*) &base_reg, 1);
+    return i2c_read_my(addr, v, n);
 }
 
 /**********************************************************************

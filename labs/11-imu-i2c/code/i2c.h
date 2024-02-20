@@ -17,4 +17,6 @@ int i2c_write(unsigned addr, uint8_t data[], unsigned nbytes);
 int i2c_read(unsigned addr, uint8_t data[], unsigned nbytes);
 
 
+int i2c_write_my(unsigned addr, uint8_t data[], unsigned nbytes);
+int i2c_read_my(unsigned addr, uint8_t data[], unsigned nbytes);
 #endif

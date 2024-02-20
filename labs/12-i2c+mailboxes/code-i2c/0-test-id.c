@@ -2,19 +2,33 @@
 #include "rpi.h"
 #include "i2c.h"
 
+
+void i2c_init(void);
+
+// shortest will be 130 for i2c accel.
+void i2c_init_clk_div(unsigned clk_div);
+
+// can call N times, will only initialize once (the first time)
+void i2c_init_once(void);
+
+// write <nbytes> of <datea> to i2c device address <addr>
+int i2c_write(unsigned addr, uint8_t data[], unsigned nbytes);
+// read <nbytes> of <datea> from i2c device address <addr>
+int i2c_read(unsigned addr, uint8_t data[], unsigned nbytes);
+
 // read a single device register <reg> from i2c device 
 // <addr> and return the result.
 static uint8_t i2c_get_reg(uint8_t addr, uint8_t reg) {
-    i2c_write(addr, &reg, 1);
+    i2c_write_my(addr, &reg, 1);
 
     uint8_t v;
-    i2c_read(addr,  &v, 1);
+    i2c_read_my(addr,  &v, 1);
     return v;
 }
 
 void notmain(void) {
     delay_ms(100);   // allow time for i2c/device to boot up.
-    i2c_init();
+    i2c_init_my();
     delay_ms(100);   // allow time for i2c/dev to settle after init.
 
     // from application note.
