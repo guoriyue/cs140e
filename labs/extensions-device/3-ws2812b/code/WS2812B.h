@@ -208,28 +208,28 @@ static inline void write_0(unsigned pin, unsigned ncycles) {
 static inline void t1h(unsigned pin) {
     // unimplemented();
     
-    write_1(pin, 900);
+    write_1(pin, ns_to_cycles(900));
 }
 
 // implement T0H from the datasheet (call write_0 with the right delay)
 static inline void t0h(unsigned pin) {
     // unimplemented();
-    write_1(pin, 350);
+    write_1(pin, ns_to_cycles(350));
 }
 // implement T1L from the datasheet.
 static inline void t1l(unsigned pin) {
     // unimplemented();
-    write_0(pin, 350);
+    write_0(pin, ns_to_cycles(350));
 }
 // implement T0L from the datasheed.
 static inline void t0l(unsigned pin) {
     // unimplemented();
-    write_1(pin, 900);
+    write_0(pin, ns_to_cycles(900));
 }
 // implement RESET from the datasheet.
 static inline void treset(unsigned pin) {
     // unimplemented();
-    write_0(pin, 50000);
+    write_0(pin, ns_to_cycles(50000));
 }
 
 /***********************************************************************************
@@ -260,22 +260,25 @@ static inline void pix_sendbit(unsigned pin, uint8_t b) {
 // tests before and after.  
 static void pix_sendbyte(unsigned pin, uint8_t b) {
     // unimplemented();
-    uint8_t s=(b>>0)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>1)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>2)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>3)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>4)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>5)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>6)&0b1;
-    pix_sendbit(pin,s);
-    s=(b>>7)&0b1;
-    pix_sendbit(pin,s);
+    for(int i = 0; i < 8; i++){
+        pix_sendbit(pin, b >> i & 1);
+    }
+    // uint8_t s= (b & 0b10000000) >> 7;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b01000000) >> 6;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00100000) >> 5;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00010000) >> 4;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00001000) >> 3;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00000100) >> 2;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00000010) >> 1;
+    // pix_sendbit(pin,s);
+    // s= (b & 0b00000001);
+    // pix_sendbit(pin,s);
 }
 
 // use pix_sendbyte to send bytes [<r> red, <g> green, <b> blue out on pin <pin>.
@@ -285,8 +288,10 @@ static inline void pix_sendpixel(unsigned pin, uint8_t r, uint8_t g, uint8_t b) 
     // to trim the delays you use.
     // use pix_sendbyte to send <r>, <g> <b>
     // unimplemented();
-    pix_sendbyte(pin, r);
+    // printk("sending pixel %x %x %x\n", r, g, b);
     pix_sendbyte(pin, g);
+    pix_sendbyte(pin, r);
+    
     pix_sendbyte(pin, b);
 }
 #endif
