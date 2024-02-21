@@ -1,8 +1,23 @@
 ## Single step equivalance checking
 
+
 <p align="center">
   <img src="images/pi-ss-equiv.jpg" width="700" />
 </p>
+
+***NOTE***:
+  - You can set the `cpsr` mode using a register e.g., r0 via the
+    `msr` assembly instruction with the `_c` modifier:
+
+            msr cpsr_c, r0
+ 
+    You can see an example of where we use `msr` in `libpi/staff-start.S`
+
+  - `prefetch_flush(r)` expects a register `r` it can trash.  Usually you
+     want a caller-saved that isn't in use.***
+
+  - For part 0: you can assume `mode_get_lr_sp_asm` is *not* called
+    for USER mode.  We'll have a seperate routine for that.  
 
 Initially we were going to do today's lab in one shot, but we'll split
 it across two labs so that:
