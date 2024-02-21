@@ -10,7 +10,7 @@ COMMON_SRC += ../../extensions-device/3-ws2812b/code/neopixel.c
 # if you make your own i2c, get rid of this.
 # default: is too slow.
 # STAFF_OBJS += staff-i2c.o 
-STAFF_OBJS += staff-faster-i2c.o 
+# STAFF_OBJS += staff-faster-i2c.o 
 # COMMON_SRC := neopixel.c
 # set to 1 if you want it to automatically run.
 RUN=0

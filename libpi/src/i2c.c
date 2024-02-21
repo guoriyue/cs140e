@@ -54,7 +54,7 @@ _Static_assert(offsetof(RPI_i2c_t, clock_delay) == 0x18, "wrong offset");
 static volatile RPI_i2c_t *i2c = (void*)0x20804000; 	// BSC1
 
 // extend so this can fail.
-int i2c_write_my(unsigned addr, uint8_t data[], unsigned nbytes) {
+int i2c_write(unsigned addr, uint8_t data[], unsigned nbytes) {
     // todo("implement");
 	// return 1;
 	// similar to i2c_read
@@ -127,7 +127,7 @@ int i2c_write_my(unsigned addr, uint8_t data[], unsigned nbytes) {
 }
 
 // extend so it returns failure.
-int i2c_read_my(unsigned addr, uint8_t data[], unsigned nbytes) {
+int i2c_read(unsigned addr, uint8_t data[], unsigned nbytes) {
     // todo("implement");
 	// return 1;
 	// Before starting: wait until transfer is not active.
@@ -204,7 +204,7 @@ int i2c_read_my(unsigned addr, uint8_t data[], unsigned nbytes) {
 	}
 }
 
-void i2c_init_my(void) {
+void i2c_init(void) {
     // todo("setup GPIO, setup i2c, sanity check results");
 	// serup GPIO
 	unsigned alt0 = 4;
@@ -221,7 +221,7 @@ void i2c_init_my(void) {
 }
 
 // shortest will be 130 for i2c accel.
-void i2c_init_clk_div_my(unsigned clk_div) {
+void i2c_init_clk_div(unsigned clk_div) {
     // todo("same as init but set the clock divider");
 	i2c->clock_div = 0x5dc; // 100KHz
 }
