@@ -164,6 +164,7 @@ void notmain(void) {
     // can pass any mode, but we know the answer for this one.
     mode_get_lr_sp_asm(SYS_MODE, &sp, &lr);
     trace("sp=%x, lr=%x\n", sp, lr);
+    printk("SP=%x, LR=%x\n", SP, LR);
     assert(lr == LR);
     assert(sp == SP);
 
