@@ -21,7 +21,8 @@ RUN=1
 START_ASM = staff-start.S
 
 # new test 8
-PROGS := $(wildcard ./[125678]-*.c)
+# PROGS := $(wildcard ./[125678]-*.c)
+PROGS := $(wildcard ./[8]-*.c)
 
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed

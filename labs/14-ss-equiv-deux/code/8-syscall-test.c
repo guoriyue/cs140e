@@ -2,6 +2,11 @@
 #include "rpi.h"
 #include "full-except.h"
 
+void tmp(uint32_t r0) {
+  printk("r0 = %x\n", r0);
+  clean_reboot();
+}
+
 // simple +1 system call
 static int syscall_handler(regs_t *r) {
     uint32_t spsr = r->regs[REGS_CPSR];
