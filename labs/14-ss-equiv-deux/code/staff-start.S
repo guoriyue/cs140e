@@ -98,6 +98,28 @@ MK_FN(mov_ident)
     mov r10, #10
     mov r11, #11
     mov r12, #12
-    mov r13, #13
+    @ mov r13, #13
     bx lr
     asm_not_reached()
+
+MK_FN(small1)
+    mov r1, #1
+    mov r0, #0
+    swi 1
+
+MK_FN(small2)
+    mov r1, #2
+    mov r0, #0
+    swi 1
+
+MK_FN(sys_equiv_exit)
+    mov r0, #0
+    swi 1
+
+MK_FN(sys_equiv_putc)
+    push {lr}
+    mov r1, r0
+    mov r0, #1
+    swi 1
+    pop {lr}
+    bx lr

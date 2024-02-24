@@ -65,34 +65,39 @@ MK_FN(switchto_user_asm)
 @    asm_not_reached();
 
 MK_FN(switchto_priv_asm)
-    add r1, r0, #60  @ 15
-    mov sp, r1
-    add r2, r0, #64  @ 16
-    ldr r1, [r2]
-    // load value from a priviledged mode
-    @ ldm r0, {r0-r12,sp,lr}^ is only for user mode
-    
-    mrs r3, cpsr @ 0x20000190
-    
+    ldr r1, [r0, #64]  @ 16
     msr cpsr_cxsf, r1
-    mov r1, sp
-    mov r2, lr
-    msr cpsr_cxsf, r3
-
-    sub sp, sp, #12 @ to sp place
-    mov sp, r1
-    add sp, sp, #4 @ lr
-    mov sp, r2
-    @ sub sp, sp, #4
-    @ add sp, sp, #8
-    mov sp, r0
-    @ldm r0, {r0-r12} @ 0xc070
-
-    @ b tmp
-
+    ldm r0, {r0-r15}
     rfe sp
     asm_not_reached();
-    @ sub sp, sp, #64
+    @ add r1, r0, #60  @ 15
+    @ mov sp, r1
+    @ add r2, r0, #64  @ 16
+    @ ldr r1, [r2]
+    @ // load value from a priviledged mode
+    @ @ ldm r0, {r0-r12,sp,lr}^ is only for user mode
+    
+    @ mrs r3, cpsr @ 0x20000190
+    
+    @ msr cpsr_cxsf, r1
+    @ mov r1, sp
+    @ mov r2, lr
+    @ msr cpsr_cxsf, r3
+
+    @ sub sp, sp, #12 @ to sp place
+    @ mov sp, r1
+    @ add sp, sp, #4 @ lr
+    @ mov sp, r2
+    @ @ sub sp, sp, #4
+    @ @ add sp, sp, #8
+    @ mov sp, r0
+    @ @ldm r0, {r0-r12} @ 0xc070
+
+    @ @ b tmp
+
+    @ rfe sp
+    @ asm_not_reached();
+    @ @ sub sp, sp, #64
 
     @ mov sp, r0
     @ stm sp, {r0-r12,sp,lr} @ pc, cpsr
@@ -120,7 +125,7 @@ MK_FN(switchto_priv_asm)
 MK_FN(cswitchto_priv_asm)
     @ initially just forward to ours.
     @ b staff_cswitchto_priv_asm
-
+    @ asm_not_reached();
     @ to implement:
     @ 1. save all the callee regs (just like in your threads library)
     @    into the 17-entry register array we have been using.  note
@@ -130,17 +135,27 @@ MK_FN(cswitchto_priv_asm)
     @       str r5,  [r0, #(5*4)]  @ r5
     @       ... etc ...
     @   don't forget the cpsr!
+    
+    str r4,  [r0, #(4*4)]  @ r4
+    str r5,  [r0, #(5*4)]  @ r5
+    str r6,  [r0, #(6*4)]  @ r6
+    str r7,  [r0, #(7*4)]  @ r7
+    str r8,  [r0, #(8*4)]  @ r8
+    str r9,  [r0, #(9*4)]  @ r9
+    str r10, [r0, #(10*4)] @ r10
+    str r11, [r0, #(11*4)] @ r11
+    str r12, [r0, #(12*4)] @ 12
+    str r13, [r0, #(13*4)] @ sp
+    str r14, [r0, #(14*4)] @ lr
+    
 
-    @ str r4,  [r0, #(4*4)]  @ r4
-    @ str r5,  [r0, #(5*4)]  @ r5
-    @ str r6,  [r0, #(6*4)]  @ r6
-    @ str r7,  [r0, #(7*4)]  @ r7
-    @ str r8,  [r0, #(8*4)]  @ r8
-    @ str r9,  [r0, #(9*4)]  @ r9
-    @ str r10, [r0, #(10*4)] @ r10
-    @ str r11, [r0, #(11*4)] @ r11
+    mrs r3, cpsr
+    str r3, [r0, #(15*4)] @ cpsr
 
-    @ str r13, [r0, #(13*4)] @ r13
+    ldr r3, [r0, #64]  @ 16
+    str r3, [r0, #(16*4)] @ lr
+
+    mov r0, r1
 
 
     @ 2. just call the right switch routine: note, we should
@@ -157,11 +172,35 @@ MK_FN(cswitchto_priv_asm)
 @ and call the right switchto on <next>
 MK_FN(cswitchto_user_asm)
     @ initially just forward to ours.
-    b staff_cswitchto_priv_asm
-
+    @ b staff_cswitchto_priv_asm
+    @ asm_not_reached();
     @ to implement:
-    
+    @ str r0,  [r0, #(0*4)]  @ r0
+    @ str r1,  [r0, #(1*4)]  @ r4
+    @ str r2,  [r0, #(2*4)]  @ r2
+    @ str r3,  [r0, #(3*4)]  @ r3
+    @ why we don't need to keep r0-r3?
+    str r4,  [r0, #(4*4)]  @ r4
+    str r5,  [r0, #(5*4)]  @ r5
+    str r6,  [r0, #(6*4)]  @ r6
+    str r7,  [r0, #(7*4)]  @ r7
+    str r8,  [r0, #(8*4)]  @ r8
+    str r9,  [r0, #(9*4)]  @ r9
+    str r10, [r0, #(10*4)] @ r10
+    str r11, [r0, #(11*4)] @ r11
+    str r12, [r0, #(12*4)] @ 12
+    str sp, [r0, #(13*4)] @ sp
+    str lr, [r0, #(14*4)] @ lr
+    str pc, [r0, #(15*4)] @ pc
 
-    asm_todo("save the registers: identical to <switchto_priv_asm>")
+    mrs r3, cpsr
+    str r3, [r0, #(16*4)] @ cpsr
+
+    @ ldr r3, [r0, #64]  @ 16
+    @ str r3, [r0, #(16*4)] @ lr
+
+    mov r0, r1
+    @ asm_todo("save the registers: identical to <switchto_priv_asm>")
+
     bl switchto_user_asm
     asm_not_reached();

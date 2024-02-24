@@ -1,5 +1,6 @@
 COMMON_SRC += mini-watch.c
 COMMON_SRC += mini-step.c
+COMMON_SRC += equiv-threads.c
 # this changed
 COMMON_SRC += staff-full-except.c 
 # new
@@ -22,7 +23,9 @@ START_ASM = staff-start.S
 
 # new test 8
 # PROGS := $(wildcard ./[125678]-*.c)
-PROGS := $(wildcard ./[8]-*.c)
+# PROGS := $(wildcard ./[8]-*.c)
+PROGS := $(wildcard ./[9]-*.c)
+# PROGS := $(wildcard ./[10]-*.c)
 
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed

@@ -7,7 +7,7 @@ static int cnt;
 static void step_handler_trivial(void *data, step_fault_t *s) {
     let regs = s->regs->regs;
     uint32_t pc = regs[15];
-    output("TRACE: cnt=%d: pc=%x\n", cnt, pc);
+    output("TRACE: cnt=%d: pc=%x\n", cnt++,pc);
 }
 
 void nop_10(void);

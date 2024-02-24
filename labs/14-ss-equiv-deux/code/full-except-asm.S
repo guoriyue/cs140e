@@ -85,8 +85,8 @@ prefetch_handler_full:
     sub   lr, lr, #4
 
     asm_todo("save all the regs in a reg_t on the stack") 
+    
     asm_todo("mov regs into r0, spsr into r1, pc into r2")
-
     bl prefetch_abort_full_except
     asm_not_reached();
 

@@ -18,11 +18,26 @@ static int single_step_on_p;
 // registers where we started single-stepping
 static regs_t start_regs;
 
+void mismatch_run(regs_t *r) {
+    uint32_t pc = r->regs[REGS_PC];
+
+    mismatch_pc_set(pc);
+
+    // otherwise there is a race condition if we are 
+    // stepping through the uart code --- note: we could
+    // just check the pc and the address range of
+    // uart.o
+    while(!uart_can_put8())
+        ;
+
+    switchto(r);
+}
+
 // 0. get the previous pc that we were mismatching on.
 // 1. set bvr0/bcr0 for mismatch on <pc>
 // 2. prefetch_flush();
 // 3. return old pc.
-static inline uint32_t mismatch_pc_set(uint32_t pc) {
+inline uint32_t mismatch_pc_set(uint32_t pc) {
     assert(single_step_on_p);
     uint32_t old_pc = cp14_bvr0_get();
 
@@ -45,7 +60,7 @@ static inline uint32_t mismatch_pc_set(uint32_t pc) {
 }
 
 // on/start maybe do different things?  
-static inline void mismatch_on(void) {
+inline void mismatch_on(void) {
     assert(!single_step_on_p);
     single_step_on_p = 1;
     // can keep doing.
@@ -56,7 +71,7 @@ static inline void mismatch_on(void) {
 }
 
 // disable mis-matching by just turning it off in bcr0
-static inline void mismatch_off(void) {
+inline void mismatch_off(void) {
     assert(single_step_on_p);
     single_step_on_p = 0;
 

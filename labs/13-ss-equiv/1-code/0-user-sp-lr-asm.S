@@ -108,7 +108,7 @@ MK_FN(mem_user_sp_lr_set)
 @ void mode_get_lr_sp_asm(mode, &sp, &lr)
 MK_FN(mode_get_lr_sp_asm)
     @ asm_todo("implement this");
-    mrs r4, cpsr
+    mrs r3, cpsr
     @ cps #SYS_MODE
     msr cpsr, r0
 
@@ -119,6 +119,6 @@ MK_FN(mode_get_lr_sp_asm)
     stm r2, {lr}
 
     @ cps #SUPER_MODE
-    msr cpsr, r4
+    msr cpsr, r3
     bx lr
 

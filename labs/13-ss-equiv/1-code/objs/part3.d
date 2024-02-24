@@ -1,4 +1,4 @@
-objs/1-rfe-blk.o: 1-rfe-blk.c \
+objs/part3.o: part3.c \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/libc/demand.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/gpio.h \
@@ -10,7 +10,8 @@ objs/1-rfe-blk.o: 1-rfe-blk.c \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi-constants.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/libc/bit-support.h \
- /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi-inline-asm.h
+ /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi-inline-asm.h \
+ /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/src/vector-base.h
 
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi.h:
 
@@ -35,3 +36,5 @@ cpsr-util.h:
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/libc/bit-support.h:
 
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi-inline-asm.h:
+
+/Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/src/vector-base.h:

@@ -64,7 +64,7 @@ MK_FN(switchto_user_asm)
     mov sp, r0
     
     add r1, sp, #60  @ 15
-    add r2, sp, #64  @ 16
+    @ add r2, sp, #64  @ 16
 
     @ ldr lr, {r1}
     mov sp, r1
@@ -74,7 +74,23 @@ MK_FN(switchto_user_asm)
     rfe sp
     asm_not_reached();
 
+
 @ so we don't get linker errors 
 .weak rfe_c_code
 rfe_c_code:
     asm_not_reached()
+
+
+MK_FN(lr_get)
+    mov r0, lr
+    bx lr
+
+MK_FN(sp_get)
+    mov r0, sp
+    bx lr
+
+.weak do_another_mode
+do_another_mode:
+    asm_not_reached()
+
+MK_FN(switchto_anymode_asm)
