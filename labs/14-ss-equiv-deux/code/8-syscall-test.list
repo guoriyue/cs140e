@@ -172,7 +172,7 @@ Disassembly of section .text:
     822c:	e3500010 	cmp	r0, #16, 0
     8230:	0a000001 	beq	823c <syscall_test+0xa0>
     8234:	e59f0024 	ldr	r0, [pc, #36]	; 8260 <syscall_test+0xc4>
-    8238:	eb000869 	bl	a3e4 <switchto_priv_asm>
+    8238:	eb00086a 	bl	a3e8 <switchto_priv_asm>
     823c:	e59f001c 	ldr	r0, [pc, #28]	; 8260 <syscall_test+0xc4>
     8240:	eb000856 	bl	a3a0 <switchto_user_asm>
     8244:	0000bc18 	.word	0x0000bc18
@@ -400,7 +400,7 @@ Disassembly of section .text:
     859c:	0a000021 	beq	8628 <notmain+0x154>
     85a0:	e28d100c 	add	r1, sp, #12, 0
     85a4:	e59f0098 	ldr	r0, [pc, #152]	; 8644 <notmain+0x170>
-    85a8:	eb00079d 	bl	a424 <cswitchto_priv_asm>
+    85a8:	eb00079e 	bl	a428 <cswitchto_priv_asm>
     85ac:	e59f1094 	ldr	r1, [pc, #148]	; 8648 <notmain+0x174>
     85b0:	e59f0094 	ldr	r0, [pc, #148]	; 864c <notmain+0x178>
     85b4:	eb000956 	bl	ab14 <printk>
@@ -434,7 +434,7 @@ Disassembly of section .text:
     8624:	eb000a6a 	bl	afd4 <clean_reboot>
     8628:	e28d100c 	add	r1, sp, #12, 0
     862c:	e59f0010 	ldr	r0, [pc, #16]	; 8644 <notmain+0x170>
-    8630:	eb000799 	bl	a49c <cswitchto_user_asm>
+    8630:	eb00079a 	bl	a4a0 <cswitchto_user_asm>
     8634:	eaffffdc 	b	85ac <notmain+0xd8>
     8638:	00008264 	.word	0x00008264
     863c:	0000afd4 	.word	0x0000afd4
@@ -541,7 +541,7 @@ Disassembly of section .text:
     87c8:	1a000002 	bne	87d8 <watchpt_fault+0x168>
     87cc:	e3530010 	cmp	r3, #16, 0
     87d0:	0a000008 	beq	87f8 <watchpt_fault+0x188>
-    87d4:	eb000702 	bl	a3e4 <switchto_priv_asm>
+    87d4:	eb000703 	bl	a3e8 <switchto_priv_asm>
     87d8:	e58d3004 	str	r3, [sp, #4]
     87dc:	e58d3000 	str	r3, [sp]
     87e0:	e3a03013 	mov	r3, #19, 0
@@ -764,7 +764,7 @@ Disassembly of section .text:
     8b04:	e3500010 	cmp	r0, #16, 0
     8b08:	0a000001 	beq	8b14 <switchto+0x20>
     8b0c:	e1a00004 	mov	r0, r4
-    8b10:	eb000633 	bl	a3e4 <switchto_priv_asm>
+    8b10:	eb000634 	bl	a3e8 <switchto_priv_asm>
     8b14:	e1a00004 	mov	r0, r4
     8b18:	eb000620 	bl	a3a0 <switchto_user_asm>
 
@@ -1194,7 +1194,7 @@ Disassembly of section .text:
     9184:	0a000051 	beq	92d0 <mini_step_run+0x2fc>
     9188:	e28d100c 	add	r1, sp, #12, 0
     918c:	e59f0188 	ldr	r0, [pc, #392]	; 931c <mini_step_run+0x348>
-    9190:	eb0004a3 	bl	a424 <cswitchto_priv_asm>
+    9190:	eb0004a4 	bl	a428 <cswitchto_priv_asm>
     9194:	e59f3164 	ldr	r3, [pc, #356]	; 9300 <mini_step_run+0x32c>
     9198:	e5933000 	ldr	r3, [r3]
     919c:	e3530000 	cmp	r3, #0, 0
@@ -1276,7 +1276,7 @@ Disassembly of section .text:
     92cc:	eb000740 	bl	afd4 <clean_reboot>
     92d0:	e28d100c 	add	r1, sp, #12, 0
     92d4:	e59f0040 	ldr	r0, [pc, #64]	; 931c <mini_step_run+0x348>
-    92d8:	eb00046f 	bl	a49c <cswitchto_user_asm>
+    92d8:	eb000470 	bl	a4a0 <cswitchto_user_asm>
     92dc:	eaffffac 	b	9194 <mini_step_run+0x1c0>
     92e0:	e59f305c 	ldr	r3, [pc, #92]	; 9344 <mini_step_run+0x370>
     92e4:	e58d3000 	str	r3, [sp]
@@ -1680,7 +1680,7 @@ Disassembly of section .text:
     98ec:	e3500010 	cmp	r0, #16, 0
     98f0:	0a000007 	beq	9914 <equiv_syscall_handler+0x1cc>
     98f4:	e59f0068 	ldr	r0, [pc, #104]	; 9964 <equiv_syscall_handler+0x21c>
-    98f8:	eb0002b9 	bl	a3e4 <switchto_priv_asm>
+    98f8:	eb0002ba 	bl	a3e8 <switchto_priv_asm>
     98fc:	e59f103c 	ldr	r1, [pc, #60]	; 9940 <equiv_syscall_handler+0x1f8>
     9900:	e59f004c 	ldr	r0, [pc, #76]	; 9954 <equiv_syscall_handler+0x20c>
     9904:	eb000482 	bl	ab14 <printk>
@@ -1914,7 +1914,7 @@ Disassembly of section .text:
     9c64:	e3530010 	cmp	r3, #16, 0
     9c68:	0a000043 	beq	9d7c <equiv_run+0x1d0>
     9c6c:	e59f0130 	ldr	r0, [pc, #304]	; 9da4 <equiv_run+0x1f8>
-    9c70:	eb0001eb 	bl	a424 <cswitchto_priv_asm>
+    9c70:	eb0001ec 	bl	a428 <cswitchto_priv_asm>
     9c74:	ebfffc69 	bl	8e20 <mismatch_off>
     9c78:	e59f3128 	ldr	r3, [pc, #296]	; 9da8 <equiv_run+0x1fc>
     9c7c:	e5933000 	ldr	r3, [r3]
@@ -1982,7 +1982,7 @@ Disassembly of section .text:
     9d74:	eb000366 	bl	ab14 <printk>
     9d78:	eb000495 	bl	afd4 <clean_reboot>
     9d7c:	e59f0020 	ldr	r0, [pc, #32]	; 9da4 <equiv_run+0x1f8>
-    9d80:	eb0001c5 	bl	a49c <cswitchto_user_asm>
+    9d80:	eb0001c6 	bl	a4a0 <cswitchto_user_asm>
     9d84:	eaffffba 	b	9c74 <equiv_run+0xc8>
     9d88:	e59f1038 	ldr	r1, [pc, #56]	; 9dc8 <equiv_run+0x21c>
     9d8c:	e59f0054 	ldr	r0, [pc, #84]	; 9de8 <equiv_run+0x23c>
@@ -2058,7 +2058,7 @@ Disassembly of section .text:
     9e8c:	e3500010 	cmp	r0, #16, 0
     9e90:	0a000001 	beq	9e9c <switchto+0x20>
     9e94:	e1a00004 	mov	r0, r4
-    9e98:	eb000151 	bl	a3e4 <switchto_priv_asm>
+    9e98:	eb000152 	bl	a3e8 <switchto_priv_asm>
     9e9c:	e1a00004 	mov	r0, r4
     9ea0:	eb00013e 	bl	a3a0 <switchto_user_asm>
 
@@ -2402,101 +2402,102 @@ Disassembly of section .text:
     a3a4:	e28d103c 	add	r1, sp, #60, 0	; 0x3c
     a3a8:	e1a0d001 	mov	sp, r1
     a3ac:	e8d07fff 	ldm	r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, sp, lr}^
-    a3b0:	f89d0a00 	rfeia	sp
-    a3b4:	e3a0d409 	mov	sp, #150994944	; 0x9000000
-    a3b8:	e24f0004 	sub	r0, pc, #4, 0
-    a3bc:	e28f1000 	add	r1, pc, #0, 0
-    a3c0:	ea0002dc 	b	af38 <asm_not_reached_helper>
-    a3c4:	74697773 	.word	0x74697773
-    a3c8:	6f746863 	.word	0x6f746863
-    a3cc:	6d73612d 	.word	0x6d73612d
-    a3d0:	353a532e 	.word	0x353a532e
-    a3d4:	4e3c3a38 	.word	0x4e3c3a38
-    a3d8:	5220544f 	.word	0x5220544f
-    a3dc:	48434145 	.word	0x48434145
-    a3e0:	003e4445 	.word	0x003e4445
+    a3b0:	f1020010 	cps	#16
+    a3b4:	e12fff1e 	bx	lr
+    a3b8:	e3a0d409 	mov	sp, #150994944	; 0x9000000
+    a3bc:	e24f0004 	sub	r0, pc, #4, 0
+    a3c0:	e28f1000 	add	r1, pc, #0, 0
+    a3c4:	ea0002db 	b	af38 <asm_not_reached_helper>
+    a3c8:	74697773 	.word	0x74697773
+    a3cc:	6f746863 	.word	0x6f746863
+    a3d0:	6d73612d 	.word	0x6d73612d
+    a3d4:	363a532e 	.word	0x363a532e
+    a3d8:	4e3c3a30 	.word	0x4e3c3a30
+    a3dc:	5220544f 	.word	0x5220544f
+    a3e0:	48434145 	.word	0x48434145
+    a3e4:	003e4445 	.word	0x003e4445
 
-0000a3e4 <switchto_priv_asm>:
-    a3e4:	e5901040 	ldr	r1, [r0, #64]	; 0x40
-    a3e8:	e12ff001 	msr	CPSR_fsxc, r1
-    a3ec:	e890ffff 	ldm	r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, sp, lr, pc}
-    a3f0:	f89d0a00 	rfeia	sp
-    a3f4:	e3a0d409 	mov	sp, #150994944	; 0x9000000
-    a3f8:	e24f0004 	sub	r0, pc, #4, 0
-    a3fc:	e28f1000 	add	r1, pc, #0, 0
-    a400:	ea0002cc 	b	af38 <asm_not_reached_helper>
-    a404:	74697773 	.word	0x74697773
-    a408:	6f746863 	.word	0x6f746863
-    a40c:	6d73612d 	.word	0x6d73612d
-    a410:	373a532e 	.word	0x373a532e
-    a414:	4e3c3a32 	.word	0x4e3c3a32
-    a418:	5220544f 	.word	0x5220544f
-    a41c:	48434145 	.word	0x48434145
-    a420:	003e4445 	.word	0x003e4445
+0000a3e8 <switchto_priv_asm>:
+    a3e8:	e5901040 	ldr	r1, [r0, #64]	; 0x40
+    a3ec:	e12ff001 	msr	CPSR_fsxc, r1
+    a3f0:	e890ffff 	ldm	r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, sp, lr, pc}
+    a3f4:	f89d0a00 	rfeia	sp
+    a3f8:	e3a0d409 	mov	sp, #150994944	; 0x9000000
+    a3fc:	e24f0004 	sub	r0, pc, #4, 0
+    a400:	e28f1000 	add	r1, pc, #0, 0
+    a404:	ea0002cb 	b	af38 <asm_not_reached_helper>
+    a408:	74697773 	.word	0x74697773
+    a40c:	6f746863 	.word	0x6f746863
+    a410:	6d73612d 	.word	0x6d73612d
+    a414:	373a532e 	.word	0x373a532e
+    a418:	4e3c3a34 	.word	0x4e3c3a34
+    a41c:	5220544f 	.word	0x5220544f
+    a420:	48434145 	.word	0x48434145
+    a424:	003e4445 	.word	0x003e4445
 
-0000a424 <cswitchto_priv_asm>:
-    a424:	e5804010 	str	r4, [r0, #16]
-    a428:	e5805014 	str	r5, [r0, #20]
-    a42c:	e5806018 	str	r6, [r0, #24]
-    a430:	e580701c 	str	r7, [r0, #28]
-    a434:	e5808020 	str	r8, [r0, #32]
-    a438:	e5809024 	str	r9, [r0, #36]	; 0x24
-    a43c:	e580a028 	str	sl, [r0, #40]	; 0x28
-    a440:	e580b02c 	str	fp, [r0, #44]	; 0x2c
-    a444:	e580c030 	str	ip, [r0, #48]	; 0x30
-    a448:	e580d034 	str	sp, [r0, #52]	; 0x34
-    a44c:	e580e038 	str	lr, [r0, #56]	; 0x38
-    a450:	e10f3000 	mrs	r3, CPSR
-    a454:	e580303c 	str	r3, [r0, #60]	; 0x3c
-    a458:	e5903040 	ldr	r3, [r0, #64]	; 0x40
-    a45c:	e5803040 	str	r3, [r0, #64]	; 0x40
-    a460:	e1a00001 	mov	r0, r1
-    a464:	ebffffde 	bl	a3e4 <switchto_priv_asm>
-    a468:	e3a0d409 	mov	sp, #150994944	; 0x9000000
-    a46c:	e24f0004 	sub	r0, pc, #4, 0
-    a470:	e28f1000 	add	r1, pc, #0, 0
-    a474:	ea0002af 	b	af38 <asm_not_reached_helper>
-    a478:	74697773 	.word	0x74697773
-    a47c:	6f746863 	.word	0x6f746863
-    a480:	6d73612d 	.word	0x6d73612d
-    a484:	313a532e 	.word	0x313a532e
-    a488:	3c3a3436 	.word	0x3c3a3436
-    a48c:	20544f4e 	.word	0x20544f4e
-    a490:	43414552 	.word	0x43414552
-    a494:	3e444548 	.word	0x3e444548
-    a498:	00          	.byte	0x00
-    a499:	00          	.byte	0x00
+0000a428 <cswitchto_priv_asm>:
+    a428:	e5804010 	str	r4, [r0, #16]
+    a42c:	e5805014 	str	r5, [r0, #20]
+    a430:	e5806018 	str	r6, [r0, #24]
+    a434:	e580701c 	str	r7, [r0, #28]
+    a438:	e5808020 	str	r8, [r0, #32]
+    a43c:	e5809024 	str	r9, [r0, #36]	; 0x24
+    a440:	e580a028 	str	sl, [r0, #40]	; 0x28
+    a444:	e580b02c 	str	fp, [r0, #44]	; 0x2c
+    a448:	e580c030 	str	ip, [r0, #48]	; 0x30
+    a44c:	e580d034 	str	sp, [r0, #52]	; 0x34
+    a450:	e580e038 	str	lr, [r0, #56]	; 0x38
+    a454:	e10f3000 	mrs	r3, CPSR
+    a458:	e580303c 	str	r3, [r0, #60]	; 0x3c
+    a45c:	e5903040 	ldr	r3, [r0, #64]	; 0x40
+    a460:	e5803040 	str	r3, [r0, #64]	; 0x40
+    a464:	e1a00001 	mov	r0, r1
+    a468:	ebffffde 	bl	a3e8 <switchto_priv_asm>
+    a46c:	e3a0d409 	mov	sp, #150994944	; 0x9000000
+    a470:	e24f0004 	sub	r0, pc, #4, 0
+    a474:	e28f1000 	add	r1, pc, #0, 0
+    a478:	ea0002ae 	b	af38 <asm_not_reached_helper>
+    a47c:	74697773 	.word	0x74697773
+    a480:	6f746863 	.word	0x6f746863
+    a484:	6d73612d 	.word	0x6d73612d
+    a488:	313a532e 	.word	0x313a532e
+    a48c:	3c3a3636 	.word	0x3c3a3636
+    a490:	20544f4e 	.word	0x20544f4e
+    a494:	43414552 	.word	0x43414552
+    a498:	3e444548 	.word	0x3e444548
+    a49c:	00          	.byte	0x00
+    a49d:	00          	.byte	0x00
 	...
 
-0000a49c <cswitchto_user_asm>:
-    a49c:	e5804010 	str	r4, [r0, #16]
-    a4a0:	e5805014 	str	r5, [r0, #20]
-    a4a4:	e5806018 	str	r6, [r0, #24]
-    a4a8:	e580701c 	str	r7, [r0, #28]
-    a4ac:	e5808020 	str	r8, [r0, #32]
-    a4b0:	e5809024 	str	r9, [r0, #36]	; 0x24
-    a4b4:	e580a028 	str	sl, [r0, #40]	; 0x28
-    a4b8:	e580b02c 	str	fp, [r0, #44]	; 0x2c
-    a4bc:	e580c030 	str	ip, [r0, #48]	; 0x30
-    a4c0:	e580d034 	str	sp, [r0, #52]	; 0x34
-    a4c4:	e580e038 	str	lr, [r0, #56]	; 0x38
-    a4c8:	e580f03c 	str	pc, [r0, #60]	; 0x3c
-    a4cc:	e10f3000 	mrs	r3, CPSR
-    a4d0:	e5803040 	str	r3, [r0, #64]	; 0x40
-    a4d4:	e1a00001 	mov	r0, r1
-    a4d8:	ebffffb0 	bl	a3a0 <switchto_user_asm>
-    a4dc:	e3a0d409 	mov	sp, #150994944	; 0x9000000
-    a4e0:	e24f0004 	sub	r0, pc, #4, 0
-    a4e4:	e28f1000 	add	r1, pc, #0, 0
-    a4e8:	ea000292 	b	af38 <asm_not_reached_helper>
-    a4ec:	74697773 	.word	0x74697773
-    a4f0:	6f746863 	.word	0x6f746863
-    a4f4:	6d73612d 	.word	0x6d73612d
-    a4f8:	323a532e 	.word	0x323a532e
-    a4fc:	3c3a3630 	.word	0x3c3a3630
-    a500:	20544f4e 	.word	0x20544f4e
-    a504:	43414552 	.word	0x43414552
-    a508:	3e444548 	.word	0x3e444548
+0000a4a0 <cswitchto_user_asm>:
+    a4a0:	e5804010 	str	r4, [r0, #16]
+    a4a4:	e5805014 	str	r5, [r0, #20]
+    a4a8:	e5806018 	str	r6, [r0, #24]
+    a4ac:	e580701c 	str	r7, [r0, #28]
+    a4b0:	e5808020 	str	r8, [r0, #32]
+    a4b4:	e5809024 	str	r9, [r0, #36]	; 0x24
+    a4b8:	e580a028 	str	sl, [r0, #40]	; 0x28
+    a4bc:	e580b02c 	str	fp, [r0, #44]	; 0x2c
+    a4c0:	e580c030 	str	ip, [r0, #48]	; 0x30
+    a4c4:	e580d034 	str	sp, [r0, #52]	; 0x34
+    a4c8:	e580e038 	str	lr, [r0, #56]	; 0x38
+    a4cc:	e580f03c 	str	pc, [r0, #60]	; 0x3c
+    a4d0:	e10f3000 	mrs	r3, CPSR
+    a4d4:	e5803040 	str	r3, [r0, #64]	; 0x40
+    a4d8:	e1a00001 	mov	r0, r1
+    a4dc:	ebffffaf 	bl	a3a0 <switchto_user_asm>
+    a4e0:	e3a0d409 	mov	sp, #150994944	; 0x9000000
+    a4e4:	e24f0004 	sub	r0, pc, #4, 0
+    a4e8:	e28f1000 	add	r1, pc, #0, 0
+    a4ec:	ea000291 	b	af38 <asm_not_reached_helper>
+    a4f0:	74697773 	.word	0x74697773
+    a4f4:	6f746863 	.word	0x6f746863
+    a4f8:	6d73612d 	.word	0x6d73612d
+    a4fc:	323a532e 	.word	0x323a532e
+    a500:	3c3a3830 	.word	0x3c3a3830
+    a504:	20544f4e 	.word	0x20544f4e
+    a508:	43414552 	.word	0x43414552
+    a50c:	3e444548 	.word	0x3e444548
 	...
 
 0000a520 <reset>:

@@ -11,25 +11,25 @@
 @   - sp pointer in r1
 @   - lr pointer in r2
 @
-@ MK_FN(priv_get_sp_lr_asm)
-@     b staff_priv_get_sp_lr_asm
-@     asm_not_reached();
-
 MK_FN(priv_get_sp_lr_asm)
-    @ asm_todo("implement this");
-    mrs r3, cpsr
-    @ cps #SYS_MODE
-    msr cpsr, r0
+    b staff_priv_get_sp_lr_asm
+    asm_not_reached();
 
-    @ USER And SYSTEM share the same sp/lr/cpsr
-    @ mov r1, sp
-    @ mov r2, lr
-    stm r1, {sp}
-    stm r2, {lr}
+@ MK_FN(priv_get_sp_lr_asm)
+@     @ asm_todo("implement this");
+@     mrs r3, cpsr
+@     @ cps #SYS_MODE
+@     msr cpsr, r0
 
-    @ cps #SUPER_MODE
-    msr cpsr, r3
-    bx lr
+@     @ USER And SYSTEM share the same sp/lr/cpsr
+@     @ mov r1, sp
+@     @ mov r2, lr
+@     stm r1, {sp}
+@     stm r2, {lr}
+
+@     @ cps #SUPER_MODE
+@     msr cpsr, r3
+@     bx lr
 
 
 
@@ -39,37 +39,39 @@ MK_FN(priv_get_sp_lr_asm)
 @  - <r> is a 17-entry register entry in r0.
 @
 @ switch to user mode loading r0-r15, and cpsr from <r>
-@ MK_FN(switchto_user_asm)
-@     b staff_switchto_user_asm
-@     asm_not_reached();
 MK_FN(switchto_user_asm)
-    @ asm_todo("implement this");
-    mov sp, r0
-    
-    add r1, sp, #60  @ 15
-    @ add r2, sp, #64  @ 16
-
-    @ ldr lr, {r1}
-    mov sp, r1
-
-    ldm r0, {r0-r12,sp,lr}^
-
-    rfe sp
+    b staff_switchto_user_asm
     asm_not_reached();
+@ MK_FN(switchto_user_asm)
+@     @ asm_todo("implement this");
+@     mov sp, r0
+    
+@     add r1, sp, #60  @ 15
+@     @ add r2, sp, #64  @ 16
+
+@     @ ldr lr, {r1}
+@     mov sp, r1
+    
+@     ldm r0, {r0-r12,sp,lr}^
+@     cps #USER_MODE
+
+@     rfe sp
+@     @ bx lr
+@     asm_not_reached();
 
 @ drop in your code from lab 13
 @ 
 @ void switchto_priv_asm(regs_t *r)  __attribute__((noreturn));
-@ MK_FN(switchto_priv_asm)
-@    b staff_switchto_priv_asm
-@    asm_not_reached();
-
 MK_FN(switchto_priv_asm)
-    ldr r1, [r0, #64]  @ 16
-    msr cpsr_cxsf, r1
-    ldm r0, {r0-r15}
-    rfe sp
-    asm_not_reached();
+   b staff_switchto_priv_asm
+   asm_not_reached();
+
+@ MK_FN(switchto_priv_asm)
+@     ldr r1, [r0, #64]  @ 16
+@     msr cpsr_cxsf, r1
+@     ldm r0, {r0-r15}
+@     rfe sp
+@     asm_not_reached();
     @ add r1, r0, #60  @ 15
     @ mov sp, r1
     @ add r2, r0, #64  @ 16
@@ -124,7 +126,7 @@ MK_FN(switchto_priv_asm)
 @ and call the right switchto on <next>
 MK_FN(cswitchto_priv_asm)
     @ initially just forward to ours.
-    @ b staff_cswitchto_priv_asm
+    b staff_cswitchto_priv_asm
     @ asm_not_reached();
     @ to implement:
     @ 1. save all the callee regs (just like in your threads library)
@@ -172,7 +174,7 @@ MK_FN(cswitchto_priv_asm)
 @ and call the right switchto on <next>
 MK_FN(cswitchto_user_asm)
     @ initially just forward to ours.
-    @ b staff_cswitchto_priv_asm
+    b staff_cswitchto_priv_asm
     @ asm_not_reached();
     @ to implement:
     @ str r0,  [r0, #(0*4)]  @ r0
