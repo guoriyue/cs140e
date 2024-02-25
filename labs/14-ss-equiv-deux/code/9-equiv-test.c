@@ -7,7 +7,6 @@ void nop_1(void *);
 void mov_ident(void *);
 void small1(void *);
 void small2(void *);
-
 static eq_th_t * run_single(int N, void (*fn)(void*), void *arg, uint32_t hash) {
     let th = equiv_fork_nostack(fn, arg, hash);
     th->verbose_p = 1;
@@ -33,6 +32,10 @@ void notmain(void) {
     let th2 = run_single(1, small2, 0, 0x18e43fb1);
     equiv_refresh(th1);
     equiv_refresh(th2);
+
+    // th1->verbose_p = 0;
+    // th2->verbose_p = 0;
+
     equiv_run();
     trace("easy no-stack passed\n");
 

@@ -14,7 +14,7 @@ STAFF_OBJS += staff-switchto-asm.o
 
 # define this if you need to give the device for your pi
 TTYUSB = 
-BOOTLOADER = my-install
+BOOTLOADER = pi-install
 
 # set to 0 if you don't want it to run
 RUN=1
@@ -22,7 +22,7 @@ RUN=1
 START_ASM = staff-start.S
 
 # new test 8
-PROGS := $(wildcard ./[8]-*.c)
+PROGS := $(wildcard ./[10]-*.c)
 
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed

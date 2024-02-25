@@ -97,9 +97,40 @@ prefetch_handler_full:
 @    faulted.
 data_abort_full:
     @ initially we just forward to staff
-    b staff_data_abort_trampoline_full
+    @ b staff_data_abort_trampoline_full
 
-    asm_todo("implement")
+    ldm r0, {r0-r12}^
+    str r0, [sp, #0]
+    str r1, [sp, #4]
+    str r2, [sp, #8]
+    str r3, [sp, #12]
+    str r4, [sp, #16]
+    str r5, [sp, #20]
+    str r6, [sp, #24]
+    str r7, [sp, #28]
+    str r8, [sp, #32]
+    str r9, [sp, #36]
+    str r10, [sp, #40]
+    str r11, [sp, #44]
+    str r12, [sp, #48]
+
+    mov r1, lr @ save current mode lr, not user mode lr
+    mov r2, sp @ save current mode sp, not user mode sp
+    ldm lr, {lr}^
+    ldm sp, {sp}^
+
+    str sp, [r2, #52]
+    str lr, [r2, #56] @ save user mode lr and sp to super stack
+    sub r3, r1, #8 @ pc of abort instruction
+    str r3, [r2, #60]
+    mrs r3, spsr
+    str r3, [r2, #64] @ finish saving regs
+    
+
+    @ point r0 to the regs_t, r1 to spsr, r2 to pc
+    mov r0, r2
+    sub r2, r1, #8
+    mrs r1, spsr
     bl data_abort_full_except
     asm_not_reached();
 

@@ -35,5 +35,13 @@ void mismatch_off(void);
 void mismatch_run(regs_t *r) __attribute__((noreturn));
 uint32_t mismatch_pc_set(uint32_t pc);
 
+// // change this from static inline in mini-step.c
+// void mismatch_on(void);
+// // change this from static inline in mini-step.c
+// void mismatch_off(void);
+// // change this from static inline in mini-step.c
+// uint32_t mismatch_pc_set(uint32_t pc);
+
+// void mismatch_run(regs_t *r);
 
 #endif
