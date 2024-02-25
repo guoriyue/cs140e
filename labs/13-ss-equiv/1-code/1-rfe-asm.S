@@ -94,3 +94,18 @@ do_another_mode:
     asm_not_reached()
 
 MK_FN(switchto_anymode_asm)
+    add sp, r0, #60
+
+    add r1, r0, #52 @ 13
+    add r2, r0, #56 @ 14
+
+    mrs r3, cpsr
+    msr cpsr_c, r0
+    
+    ldm r1, {sp}
+    ldm r2, {lr}
+    msr cpsr_c, r3
+
+    ldm r0, {r0-r12}
+    rfe sp
+    asm_not_reached();

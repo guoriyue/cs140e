@@ -7,13 +7,13 @@ PROGS  = 0-user-sp-lr.c
 #PROGS = 5-single-step-one.c
 #PROGS = 6-single-step-proc.c
 
-PROGS += 1-rfe-example.c
-PROGS += 1-rfe-blk.c
-PROGS += 1-rfe-switchto-user.c
+# PROGS += 1-rfe-example.c
+# PROGS += 1-rfe-blk.c
+# PROGS += 1-rfe-switchto-user.c
 
-PROGS += 2-reg-save.c
-PROGS += 2-reg-save-full.c
-# PROGS += part3.c
+# PROGS += 2-reg-save.c
+# PROGS += 2-reg-save-full.c
+PROGS += part3.c
 START_ASM = staff-start.S
 # START_ASM = staff-start.S
 # OUR_START = staff-start.S
@@ -24,6 +24,7 @@ START_ASM = staff-start.S
 COMMON_SRC += 0-user-sp-lr-asm.S  
 COMMON_SRC += 1-rfe-asm.S  
 COMMON_SRC += 2-reg-save-asm.S
+# COMMON_SRC += part3.c
 # single-step.c
 # COMMON_SRC += 2-simple-single-step-asm.S
 
