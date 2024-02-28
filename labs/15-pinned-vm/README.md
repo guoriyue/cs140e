@@ -135,7 +135,7 @@ state) there's a bunch of data structure code.   The rough breakdown:
 #### Check-off
 
 You need to show that:
-  1. You replaced all `staff_mmu_*` routines with yours and everything works.
+  1. You aren't linking against `staff-pinned-vm.o`.
   2. You can handle protection and unallowed access faults.
 
 ------------------------------------------------------------------------------
@@ -248,6 +248,9 @@ what is going on.  Start with:
 ----------------------------------------------------------------------
 ## Part 3: implement `pinned-vm.c:lockdown_print_entries`
 
+***NOTE:***
+  - our `apx` is actually `apx` + `ap`  on page 3-151 (so 3 bits
+    in total).
 
 Mine is something like:
 
