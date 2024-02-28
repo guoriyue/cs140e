@@ -230,14 +230,24 @@ void notmain(void) {
     trace("try PUT32\n");
     PUT32(illegal_addr, 0xdeadbeef);
 
+    
+
+
+    uint32_t bx_lr = 0xe12fff1e;
+
+    // PUT32(illegal_addr, bx_lr);
+    *(uint32_t*)illegal_addr = bx_lr;
+    trace("try jump\n");
+    // can also cast to a function pointer and call it
     staff_domain_access_ctrl_set(0b01<<1*2);
-
-
+    BRANCHTO(illegal_addr);
+    // asm volatile("bx %0" : : "r" (illegal_addr));
+    
     // Do (2) and (3) for a jump. 
     // You'll have to write the instruction for bx lr to a heap 
     // location and jump to it. Note: for this you'll need to 
     // also install a prefetch abort handler (just like we did last lab).
-    asm volatile("mov r0, #0xdeadbeef");
+    // asm volatile("mov r0, #0xdeadbeef");
 
 
     // Removes permissions for d, does a load using GET32, and gets the fault.

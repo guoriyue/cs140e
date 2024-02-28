@@ -410,28 +410,22 @@ Disassembly of section .text:
 	...
 
 00008528 <switchto_anymode_asm>:
-    8528:	e280d03c 	add	sp, r0, #60, 0	; 0x3c
-    852c:	e2801034 	add	r1, r0, #52, 0	; 0x34
-    8530:	e2802038 	add	r2, r0, #56, 0	; 0x38
-    8534:	e10f3000 	mrs	r3, CPSR
-    8538:	e121f000 	msr	CPSR_c, r0
-    853c:	e8912000 	ldm	r1, {sp}
-    8540:	e8924000 	ldm	r2, {lr}
-    8544:	e121f003 	msr	CPSR_c, r3
-    8548:	e8901fff 	ldm	r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip}
-    854c:	f89d0a00 	rfeia	sp
-    8550:	e3a0d409 	mov	sp, #150994944	; 0x9000000
-    8554:	e24f0004 	sub	r0, pc, #4, 0
-    8558:	e28f1000 	add	r1, pc, #0, 0
-    855c:	ea00013c 	b	8a54 <asm_not_reached_helper>
-    8560:	66722d31 	.word	0x66722d31
-    8564:	73612d65 	.word	0x73612d65
-    8568:	3a532e6d 	.word	0x3a532e6d
-    856c:	3a313131 	.word	0x3a313131
-    8570:	544f4e3c 	.word	0x544f4e3c
-    8574:	41455220 	.word	0x41455220
-    8578:	44454843 	.word	0x44454843
-    857c:	003e      	.short	0x003e
+    8528:	e5901040 	ldr	r1, [r0, #64]	; 0x40
+    852c:	e12ff001 	msr	CPSR_fsxc, r1
+    8530:	e890ffff 	ldm	r0, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, sp, lr, pc}
+    8534:	f89d0a00 	rfeia	sp
+    8538:	e3a0d409 	mov	sp, #150994944	; 0x9000000
+    853c:	e24f0004 	sub	r0, pc, #4, 0
+    8540:	e28f1000 	add	r1, pc, #0, 0
+    8544:	ea000142 	b	8a54 <asm_not_reached_helper>
+    8548:	66722d31 	.word	0x66722d31
+    854c:	73612d65 	.word	0x73612d65
+    8550:	3a532e6d 	.word	0x3a532e6d
+    8554:	3a353231 	.word	0x3a353231
+    8558:	544f4e3c 	.word	0x544f4e3c
+    855c:	41455220 	.word	0x41455220
+    8560:	44454843 	.word	0x44454843
+    8564:	003e      	.short	0x003e
 	...
 
 00008580 <swi_trampoline>:
