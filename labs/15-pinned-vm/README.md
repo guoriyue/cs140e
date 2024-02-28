@@ -5,6 +5,23 @@
 </p>
 
 
+tl;dr: the goal:
+  1. Get rid of `staff-pinned-vm.o` in the `Makefile`.
+  2. `make check` should pass for all the tests.
+  3. You will also have to write some exception handling code to 
+     disambiguate the cause of exceptions (see part 4).
+  4. I would do the tests in order.  The first one `1-test-basic.c`
+     has tons of comments.
+  5. NOTE: once you get to `1-test-two-addr.c` you should comment out
+     the failing check:
+
+            // pin_mmu_sec
+            if(va != pa)
+                panic("for today's lab, va (%x) should equal pa (%x)\n",
+                    va,pa);
+
+     This was just to catch mistakes in previous tests.
+
 Given that it's midterm week we'll do a fairly simple virtual memory
 (VM) lab that side-steps a major source of VM complexity --- the need
 to use a page table --- by instead "pinning" the translations we need
@@ -165,11 +182,11 @@ twice if the instruction is a load or store.  So as you expect we'll
 have one or more caches to keep translations (confusingly called
 "translation lookaside buffers").  And, as you can figure out on your
 own, if we change the function mapping, these caches have to be updated.
-Keeping the contents of a table coherent coherent with a translation
-cache is alot of work, so machines generally (always?) punt on this,
-and it is up to the implementor to flush any needed cache entries when
-the mapping changes. (This flush must either only finish when everything
-is flushed, or the implementor must insert a barrier to wait).
+Keeping the contents of a table coherent with a translation cache is alot
+of work, so machines generally (always?) punt on this, and it is up to the
+implementor to flush any needed cache entries when the mapping changes.
+(This flush must either only finish when everything is flushed, or the
+implementor must insert a barrier to wait).
 
 Finally, as a detail, we have to tell the hardware where to find the
 translations for each different address space.  Typically there is a
@@ -205,7 +222,8 @@ Where to look:
 The tests for this:
   - `tests/1-test-basic.c`  :  start here.  Tons of comments.
   - `tests/1-test-setup.c`  :  does a simple setup.
-  - `tests/1-test-two-addr.c` :  uses two different address spaces and flips between them.
+  - `tests/1-test-two-addr.c` :  uses two different address spaces and flips between them.  This one will require removing the assert that checks for
+     the identity map.
   - `tests/1-test-lookup.c`  : inserts and then checks that the mappings are in 
      the TLB.
 
@@ -214,14 +232,20 @@ If you want to use our stuff, there's a few helpers you implement.
 
 
 ----------------------------------------------------------------------
-## Part 2: implement `pinned-vm.c:pin_mmu_on(procmap_t *p)` 
+## Part 2: implement `pinned-vm.c:pin_mmu_init(uint32_t domain_reg)` 
 
-It will be convenient later to pass in a data structure that contains the mapping
-of the kernel rather than embedding the addresses in a bunch of code.  You should
-be able to pretty easily finish `pin_mmu_on` using the code in the previous two
-tests.
+You should be able to pretty easily finish `pin_mmu_unit` using
+the code from the first test case.
 
-Note that you'll have to handle the domains in the domain control register.
+
+It will be convenient later to pass in a data structure that contains
+the mapping of the kernel rather than embedding the addresses in a bunch
+of code.   You should look through  the code in `procmap.h` to see
+what is going on.  Start with:
+
+    // procmap.h
+    static inline void procmap_pin_on(procmap_t *p) 
+
 
 ----------------------------------------------------------------------
 ## Part 3: implement `pinned-vm.c:lockdown_print_entries`
@@ -270,7 +294,8 @@ Mine is something like:
 ----------------------------------------------------------------------
 ## Part 4: handle a couple exceptions
 
-For this part you'll write all the code.  
+For this part you'll write all the code, but you should be able to 
+start with the exception code from `1-test-basic.c`.
 
 A domain fault.  Write a single test that:
   1. Tags the heap with its own domain id `d`.
@@ -281,13 +306,11 @@ A domain fault.  Write a single test that:
   5. Do (2) and (3) for a jump.  You'll have to write the instruction
      for `bx lr` to a heap location and jump to it.
 
-
 Useful domain pages:
   - B4-10: what the bit values mean for the `domain` field.
   - B4-15: how addresses are translated and checked for faults.
   - B4-27: the location / size of the `domain` field in the segment page table entry.
   - B4-42: setting the domain register.
-
 
 A invalid access fault:
   1. Write tests that 
@@ -366,7 +389,52 @@ Result:
 </td></tr></table>
      
 ----------------------------------------------------------------------
-## Extension:
+### Extension: speed.
+
+One drawback of our arm1176 is that without virtual memory
+we can't turn on data caching.  But, what do you know.  We 
+now have VM.
+
+So:
+  1. Write some memory intensive code.  Run it without caching
+      and measure the cycle counts.  
+
+  2. Then turn caching on.
+
+  3. Rerun and see improvments.
+
+How to enable caching: 
+  1. You need to turn on in control reg 1 (see `armv6-cp15.h`).
+  2.  And start turning caching on in the pinned mappings.
+
+You can also overclock etc.  
+
+I'm curious how fast you can make all this.  I'd expect around 5-10x.
+
+----------------------------------------------------------------------
+### Extension: simple processes.
+
+Today was good in that it was relatively straight-forward and gives
+you a working VM system. It's bad in that we don't do anything
+with it.
+
+One nice hack you can do is take the threads from last lab and turn
+them into processes, where you give each some number of entries, and pin
+them on switching.  You'd take the thread code, allocate private memory
+for each (along with the shared kernel memory) and change the context
+switching to also switch the pinned entry and address space identifiers.
+
+I really wanted to do this for this lab, but we went with a smaller
+more manageable piece.  This is useful for the upcoming lab.
+
+This hack is useful for embedded systems where you want to keep each
+driver private so that it can't trash other driver's code / data.
+
+You could go full on where you also run the threads at user level,
+so you have a hard modularity.
+
+----------------------------------------------------------------------
+## Other Extension:
 
 Bunch of possible extensions:
 
@@ -388,3 +456,10 @@ Bunch of possible extensions:
 
    This lets you build many tools that monitor loads or stores with only
    a few hundred lines of code.  Good source of final projects!
+
+
+<p align="center">
+  <img src="images/pi-done.jpg" width="450" />
+</p>
+
+
