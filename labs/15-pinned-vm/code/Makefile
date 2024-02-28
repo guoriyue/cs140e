@@ -7,6 +7,7 @@ PROGS += tests/2-test-procmap.c
 
 # your code will go here.
 COMMON_SRC = pinned-vm.c
+# COMMON_SRC += mmu-asm.S
 
 O = $(CS140E_2024_PATH)/libpi
 STAFF_OBJS += $(O)/staff-objs/staff-full-except.o

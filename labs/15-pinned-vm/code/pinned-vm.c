@@ -8,6 +8,7 @@
 #include "pinned-vm.h"
 #include "mmu.h"
 #include "procmap.h"
+#include "asm-helpers.h"
 
 // generate the _get and _set methods.
 // (see asm-helpers.h for the cp_asm macro 
@@ -15,6 +16,16 @@
 // arm1176.pdf: 3-149
 
 // define the following routines.
+// cp_asm_set(vector_base_asm, p15, 0, c12, c0, 0)
+// cp_asm_get(vector_base_asm, p15, 0, c12, c0, 0)
+cp_asm_set(lockdown_index, p15, 5, c15, c4, 2)
+cp_asm_get(lockdown_index, p15, 5, c15, c4, 2)
+cp_asm_set(lockdown_pa, p15, 5, c15, c6, 2)
+cp_asm_get(lockdown_pa, p15, 5, c15, c6, 2)
+cp_asm_set(lockdown_va, p15, 5, c15, c5, 2)
+cp_asm_get(lockdown_va, p15, 5, c15, c5, 2)
+cp_asm_set(lockdown_attr, p15, 5, c15, c7, 2)
+cp_asm_get(lockdown_attr, p15, 5, c15, c7, 2)
 #if 0
 // arm1176.pdf: 3-149
 void lockdown_index_set(uint32_t x);
@@ -54,7 +65,25 @@ uint32_t xlate_pa_get(void);
 int tlb_contains_va(uint32_t *result, uint32_t va) {
     // 3-79
     assert(bits_get(va, 0,2) == 0);
-    return staff_tlb_contains_va(result, va);
+    // printk("va=%x\n", va);
+    // printk("lockdown_va_get()=%x\n", lockdown_va_get());
+    // printk("result=%x\n", *result);
+    // return staff_tlb_contains_va(result, va);
+    // looks up the virtual address
+    // 1MB
+    // 20 bits
+    // 5
+    // only 3 bits
+    for (int i = 0; i < 8; i++) {
+        lockdown_index_set(i);
+        uint32_t base = lockdown_va_get();
+        uint32_t base_mask = 0xFFF00000;
+        if ((base & base_mask) == (va & base_mask)) {
+            *result = va;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // map <va>-><pa> at TLB index <idx> with attributes <e>
@@ -81,10 +110,73 @@ void pin_mmu_sec(unsigned idx,
     // these will hold the values you assign for the tlb entries.
     uint32_t x, va_ent, pa_ent, attr;
 
-    // put your code here.
-    unimplemented();
+    lockdown_index_set(idx);
 
-#if 0
+    // typedef struct {
+    //     // for today we only handle 1MB sections.
+    //     uint32_t G,         // is this a global entry?
+    //             asid,      // don't think this should actually be in this.
+    //             dom,       // domain id
+    //             pagesize;  // can be 1MB or 16MB
+
+    //     // permissions for needed to access page.
+    //     //
+    //     // see mem_perm_t above: is the bit merge of 
+    //     // APX and AP so can or into AP position.
+    //     mem_perm_t  AP_perm;
+
+    //     // caching policy for this memory.
+    //     // 
+    //     // see mem_cache_t enum above.
+    //     // see table on 6-16 b4-8/9
+    //     // for today everything is uncacheable.
+    //     mem_attr_t mem_attr;
+    // } pin_t;
+    // typedef enum {
+    //     perm_rw_user = 0b011, // read-write user 
+    //     perm_ro_user = 0b010, // read-only user
+    //     perm_na_user = 0b001, // no access user
+
+    //     // kernel only, user no access
+    //     perm_ro_priv = 0b101,
+    //     // perm_rw_priv = perm_na_user,
+    //     perm_rw_priv = perm_na_user,
+    //     perm_na_priv = 0b000,
+    // } mem_perm_t;
+    // typedef enum { 
+    //     //                              TEX   C  B 
+    //     // strongly ordered
+    //     // not shared.
+    //     MEM_device     =  TEX_C_B(    0b000,  0, 0),  
+    //     // normal, non-cached
+    //     MEM_uncached   =  TEX_C_B(    0b001,  0, 0),  
+
+    //     // write back no alloc
+    //     MEM_wb_noalloc =  TEX_C_B(    0b000,  1, 1),  
+    //     // write through no alloc
+    //     MEM_wt_noalloc =  TEX_C_B(    0b000,  1, 0),  
+
+    //     // NOTE: missing a lot!
+    // } mem_attr_t;
+
+
+    // mem_attr_t 5 bits
+    // mem_perm_t 3 bits
+
+    // 149
+    va_ent = va | (e.asid) | (e.G << 9);
+    lockdown_va_set(va_ent);
+    // 150, secure and non secure?
+    pa_ent = pa | (e.pagesize << 6) | (e.AP_perm << 1) | 1;
+    lockdown_pa_set(pa_ent);
+    // valid and non valid
+    attr = attr | (e.dom << 7) | (e.mem_attr << 1);
+    lockdown_attr_set(attr);
+
+    // put your code here.
+    // unimplemented();
+
+// #if 0
     // put this back in when defined.
     if((x = lockdown_va_get()) != va_ent)
         panic("lockdown va: expected %x, have %x\n", va_ent,x);
@@ -92,7 +184,7 @@ void pin_mmu_sec(unsigned idx,
         panic("lockdown pa: expected %x, have %x\n", pa_ent,x);
     if((x = lockdown_attr_get()) != attr)
         panic("lockdown attr: expected %x, have %x\n", attr,x);
-#endif
+// #endif
 }
 
 // check that <va> is pinned.  
