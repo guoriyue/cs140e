@@ -1,9 +1,9 @@
 BOOTLOADER = my-install
 
 PROGS += tests/1-test-basic.c
-PROGS += tests/1-test-setup.c
-PROGS += tests/1-test-two-addr.c
-PROGS += tests/2-test-procmap.c
+# PROGS += tests/1-test-setup.c
+# PROGS += tests/1-test-two-addr.c
+# PROGS += tests/2-test-procmap.c
 
 # your code will go here.
 COMMON_SRC = pinned-vm.c

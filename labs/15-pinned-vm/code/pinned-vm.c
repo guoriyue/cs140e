@@ -8,7 +8,6 @@
 #include "pinned-vm.h"
 #include "mmu.h"
 #include "procmap.h"
-#include "asm-helpers.h"
 
 // generate the _get and _set methods.
 // (see asm-helpers.h for the cp_asm macro 
@@ -68,7 +67,7 @@ int tlb_contains_va(uint32_t *result, uint32_t va) {
     // printk("va=%x\n", va);
     // printk("lockdown_va_get()=%x\n", lockdown_va_get());
     // printk("result=%x\n", *result);
-    // return staff_tlb_contains_va(result, va);
+    return staff_tlb_contains_va(result, va);
     // looks up the virtual address
     // 1MB
     // 20 bits
@@ -92,8 +91,8 @@ void pin_mmu_sec(unsigned idx,
                 uint32_t pa,
                 pin_t e) {
 
-    staff_pin_mmu_sec(idx, va, pa, e);
-    return;
+    // staff_pin_mmu_sec(idx, va, pa, e);
+    // return;
 
     demand(idx < 8, lockdown index too large);
     // lower 20 bits should be 0.
@@ -170,7 +169,7 @@ void pin_mmu_sec(unsigned idx,
     pa_ent = pa | (e.pagesize << 6) | (e.AP_perm << 1) | 1;
     lockdown_pa_set(pa_ent);
     // valid and non valid
-    attr = attr | (e.dom << 7) | (e.mem_attr << 1);
+    attr = (e.dom << 7) | (e.mem_attr << 1);
     lockdown_attr_set(attr);
 
     // put your code here.
@@ -230,3 +229,8 @@ void pin_mmu_switch(uint32_t pid, uint32_t asid) {
     assert(null_pt);
     staff_mmu_set_ctx(pid, asid, null_pt);
 }
+
+// void pin_mmu_on(procmap_t *p) {
+//     staff_pin_mmu_on(p);
+//     return;
+// }

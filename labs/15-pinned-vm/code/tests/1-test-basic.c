@@ -99,6 +99,8 @@ void notmain(void) {
 
     // Q1: if you uncomment this, what happens / why?
     // kern = pin_mk_global(dom_kern, perm_ro_priv, MEM_uncached);
+    // hangs? why?
+    // because it's perm_ro_priv, read only, can not write
 
     // map first two MB for the kernel (1: code, 2: heap).
     //
@@ -116,6 +118,26 @@ void notmain(void) {
 
     // Q2: if you comment this out, what happens?
     pin_mmu_sec(idx++, except_stack, except_stack, kern);
+    // no exception stack, will hang
+    // cannot jump to fault_handler and returns
+
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=2
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=3
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=4
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=5
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=6
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=7
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=8
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:MMU ON: hello from virtual memory!  cnt=9
+    // TRACE:notmain:MMU is off!
+    // TRACE:notmain:we wrote without vm: got 0xdeadbeef
 
     // ******************************************************
     // 4. setup vm hardware.
@@ -126,6 +148,9 @@ void notmain(void) {
 
     // Q3: if you set this to ~0, what happens w.r.t. Q1?
     staff_domain_access_ctrl_set(DOM_client << dom_kern*2); 
+    // staff_domain_access_ctrl_set(~0); 
+    // works fine
+    // 11, Accesses are not checked against the access permission bits in the TLB entry, so a permission fault cannot be generated
 
     // set address space id, page table, and pid.
     // note:

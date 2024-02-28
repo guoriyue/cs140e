@@ -39,9 +39,9 @@ typedef enum {
     perm_na_user = 0b001, // no access user
 
     // kernel only, user no access
-    perm_ro_priv = 0b101,
+    perm_ro_priv = 0b101, // Supervisor read only
     // perm_rw_priv = perm_na_user,
-    perm_rw_priv = perm_na_user,
+    perm_rw_priv = perm_na_user, // Supervisor access only
     perm_na_priv = 0b000,
 } mem_perm_t;
 
