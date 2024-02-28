@@ -2,7 +2,7 @@
 #include "rpi.h"
 #include "pinned-vm.h"
 #include "mmu.h"
-
+void assert_null_pt(void);
 void notmain(void) { 
     assert(!mmu_is_enabled());
 
@@ -11,6 +11,7 @@ void notmain(void) {
     kmalloc_init_set_start((void*)OneMB, OneMB);
 
     pin_mmu_init(~0);
+    assert_null_pt();
     // staff_pin_mmu_init(~0);
 
     enum { 
@@ -19,7 +20,6 @@ void notmain(void) {
     };          
 
     uint32_t no_user = perm_rw_priv;
-
     // device memory: kernel domain, no user access, 
     // memory is strongly ordered, not shared.
     pin_t dev  = pin_mk_global(dom_kern, no_user, MEM_device);

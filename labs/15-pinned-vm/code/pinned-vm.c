@@ -61,6 +61,7 @@ void xlate_kern_wr_set(uint32_t x);
 uint32_t xlate_pa_get(void);
 
 #endif
+static void *null_pt = 0;
 
 // do a manual translation in tlb:
 //   1. store result in <result>
@@ -94,7 +95,8 @@ void pin_mmu_sec(unsigned idx,
                 uint32_t va, 
                 uint32_t pa,
                 pin_t e) {
-
+    // trace("running...\n");
+    // assert(null_pt);
     // staff_pin_mmu_sec(idx, va, pa, e);
     // return;
 
@@ -168,6 +170,7 @@ void pin_mmu_sec(unsigned idx,
     // mem_perm_t 3 bits
 
     // 149
+    // neet to bits get va
     va_ent = va | (e.asid) | (e.G << 9);
     lockdown_va_set(va_ent);
     // 150, secure and non secure?
@@ -209,8 +212,6 @@ void domain_access_ctrl_set(uint32_t d) {
     staff_domain_access_ctrl_set(d);
 }
 
-static void *null_pt = 0;
-
 // turn the pinned MMU system on.
 //    1. initialize the MMU (maybe not actually needed): clear TLB, caches
 //       etc.  if you're obsessed with low line count this might not actually
@@ -223,7 +224,9 @@ static void *null_pt = 0;
 //       mmu procedure since it's never been on yet and we do not turn 
 //       it off.
 //    6. profit!
-
+void assert_null_pt(void) {
+    assert(null_pt);
+}
 // fill this in based on the test code.
 void pin_mmu_init(uint32_t domain_reg) {
     // staff_pin_mmu_init(domain_reg);
@@ -238,8 +241,9 @@ void pin_mmu_init(uint32_t domain_reg) {
 
     
     // (1) initialize the hardware, (2) create the null page table, and (3) set the domain register.
-    void *null_pt = kmalloc_aligned(4096*4, 1<<14);
+    null_pt = kmalloc_aligned(4096*4, 1<<14);
     assert((uint32_t)null_pt % (1<<14) == 0);
+    assert(null_pt);
 
     staff_mmu_init();
     // enum { 
@@ -248,8 +252,16 @@ void pin_mmu_init(uint32_t domain_reg) {
 
     // DOM_client 0b01
     // *(uint32_t*)domain_reg = 0b01;
-    staff_domain_access_ctrl_set(DOM_client << domain_reg * 2);
+    // TODO: this domain_reg should be different, but isn't the current bug daniel is debugging
+    printk("domain_reg %x\n", domain_reg);
+    // staff_domain_access_ctrl_set(DOM_client << domain_reg * 2);
+    // staff_domain_access_ctrl_set(DOM_client << domain_reg);
+    staff_domain_access_ctrl_set(domain_reg);
+    // *(uint32_t*)domain_reg = 0b01;
     // staff_mmu_enable();
+
+
+    
 
 
     // kmalloc_init_set_start((void*)MB, MB);
@@ -324,7 +336,7 @@ void lockdown_print_entry(unsigned idx) {
     uint32_t nsa = bit_get(pa_ent, 9);
     uint32_t nstid = bit_get(pa_ent, 8);
     uint32_t size = bits_get(pa_ent, 6, 7);
-    uint32_t apx = bit_get(pa_ent, 3);
+    uint32_t apx = bits_get(pa_ent, 1, 3); //????
     uint32_t pa = bits_get(pa_ent, 12, 31);
     trace("     pa_ent=%x: pa=%x|nsa=%d|nstid=%d|size=%b|apx=%b|v=%d\n",
                 pa_ent, pa, nsa,nstid,size, apx,v);

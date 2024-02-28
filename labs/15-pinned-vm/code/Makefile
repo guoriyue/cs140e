@@ -1,13 +1,14 @@
 BOOTLOADER = my-install
 
 # PROGS += tests/1-test-basic.c
-PROGS += tests/1-test-setup.c
+# PROGS += tests/1-test-setup.c
 # PROGS += tests/1-test-two-addr.c
 # PROGS += tests/2-test-procmap.c
+# PROGS += tests/2-test-lookup.c
+PROGS = tests/part4.c
 
 # your code will go here.
 COMMON_SRC = pinned-vm.c
-# COMMON_SRC += mmu-asm.S
 
 O = $(CS140E_2024_PATH)/libpi
 STAFF_OBJS += $(O)/staff-objs/staff-full-except.o
