@@ -34,7 +34,7 @@ void notmain(void) {
     for(unsigned i = 0; i < 15; i++)
         regs[i] = i;
     regs[15] = (uint32_t)swi_fn;
-    regs[16] = SUPER_MODE;
+    regs[16] = ABORT_MODE;
     trace("about to jump to pc=[%x] with cpsr=%x\n",
             regs[15], regs[16]);
     switchto_anymode_asm(regs);

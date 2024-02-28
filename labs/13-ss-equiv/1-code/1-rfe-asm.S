@@ -99,6 +99,11 @@ MK_FN(switchto_anymode_asm)
     add r1, r0, #52 @ 13
     add r2, r0, #56 @ 14
 
+    @ entry #16 
+    @ 64
+    @ [15, 3, 24, ... 0x8202 ,0x17]
+    @                  ^
+
     mrs r3, cpsr
     msr cpsr_c, r0
     
@@ -109,3 +114,56 @@ MK_FN(switchto_anymode_asm)
     ldm r0, {r0-r12}
     rfe sp
     asm_not_reached();
+
+
+
+@ @ MK_FN(switchto_priv_asm)
+@ @     ldr r1, [r0, #64]  @ 16
+@ @     msr cpsr_cxsf, r1
+@ @     ldm r0, {r0-r15}
+@ @     rfe sp
+@ @     asm_not_reached();
+@     @ add r1, r0, #60  @ 15
+@     @ mov sp, r1
+@     @ add r2, r0, #64  @ 16
+@     @ ldr r1, [r2]
+@     @ // load value from a priviledged mode
+@     @ @ ldm r0, {r0-r12,sp,lr}^ is only for user mode
+    
+@     @ mrs r3, cpsr @ 0x20000190
+    
+@     @ msr cpsr_cxsf, r1
+@     @ mov r1, sp
+@     @ mov r2, lr
+@     @ msr cpsr_cxsf, r3
+
+@     @ sub sp, sp, #12 @ to sp place
+@     @ mov sp, r1
+@     @ add sp, sp, #4 @ lr
+@     @ mov sp, r2
+@     @ @ sub sp, sp, #4
+@     @ @ add sp, sp, #8
+@     @ mov sp, r0
+@     @ @ldm r0, {r0-r12} @ 0xc070
+
+@     @ @ b tmp
+
+@     @ rfe sp
+@     @ asm_not_reached();
+@     @ @ sub sp, sp, #64
+
+@     @ mov sp, r0
+@     @ stm sp, {r0-r12,sp,lr} @ pc, cpsr
+@     @ add sp, sp, #56
+@     @ stm sp, {lr}
+@     @ add sp, sp, #64
+@     @ mrs r2, cpsr
+@     @ stm sp, {r2}
+@     @ sub sp, sp, #64
+
+@     @ str sp, [r0]
+@     @ mov sp, r1
+
+@     @ ldm sp, {r0-r12,sp,lr}
+@     @ add sp, sp, #56
+@     @ rfe sp

@@ -15,7 +15,7 @@ void notmain(void) {
     uint32_t d = (DOM_client << dom_kern*2)
                 |(DOM_client << dom_user*2);
 
-    staff_pin_mmu_init(d);
+    pin_mmu_init(d);
 
 
     // see 3-151 for table, or B4-9

@@ -1,6 +1,6 @@
 BOOTLOADER=my-install
 
-PROGS  = 0-user-sp-lr.c
+# PROGS  = 0-user-sp-lr.c
 
 #PROGS += 2-simple-single-step.c
 #PROGS += 4-reg-restore.c
@@ -13,7 +13,7 @@ PROGS  = 0-user-sp-lr.c
 
 # PROGS += 2-reg-save.c
 # PROGS += 2-reg-save-full.c
-PROGS += part3.c
+PROGS = part3.c
 START_ASM = staff-start.S
 # START_ASM = staff-start.S
 # OUR_START = staff-start.S

@@ -9,6 +9,10 @@
 #include "mmu.h"
 #include "procmap.h"
 
+// from last lab.
+#include "switchto.h"
+#include "full-except.h"
+
 // generate the _get and _set methods.
 // (see asm-helpers.h for the cp_asm macro 
 // definition)
@@ -99,9 +103,10 @@ void pin_mmu_sec(unsigned idx,
     demand(bits_get(va, 0, 19) == 0, only handling 1MB sections);
     demand(bits_get(pa, 0, 19) == 0, only handling 1MB sections);
 
-    if(va != pa)
-        panic("for today's lab, va (%x) should equal pa (%x)\n",
-                va,pa);
+    // don't forget to comment this back
+    // if(va != pa)
+    //     panic("for today's lab, va (%x) should equal pa (%x)\n",
+    //             va,pa);
 
     debug("about to map %x->%x\n", va,pa);
 
@@ -221,8 +226,27 @@ static void *null_pt = 0;
 
 // fill this in based on the test code.
 void pin_mmu_init(uint32_t domain_reg) {
-    staff_pin_mmu_init(domain_reg);
-    return;
+    // staff_pin_mmu_init(domain_reg);
+    // return;
+    // uint32_t page_size = 1<<14;
+    // map the heap: for lab cksums must be at 0x100000.
+    // kmalloc_init_set_start((void*)page_size, page_size);
+    staff_mmu_init();
+    // if we are correct this will never get accessed.
+    // since all valid entries are pinned.
+    void *null_pt = kmalloc_aligned(4096*4, 1<<14);
+    assert((uint32_t)null_pt % (1<<14) == 0);
+
+    // DOM_client 0b01
+    *(uint32_t*)domain_reg = 0b01;
+
+    // vector_base_set();
+    // mmu_on_first_time(1, null_pt);
+    
+
+    // initialize everything, after bootup.
+    // <mmu.h>
+    // staff_mmu_init();
 }
 
 void pin_mmu_switch(uint32_t pid, uint32_t asid) {
