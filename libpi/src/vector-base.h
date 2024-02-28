@@ -2,7 +2,7 @@
 #define __VECTOR_BASE_SET_H__
 #include "libc/bit-support.h"
 #include "asm-helpers.h"
-
+#include "rpi.h"
 // #   define is_aligned(_p,_n) (((unsigned)(_p))%(_n) == 0)
 
 /*

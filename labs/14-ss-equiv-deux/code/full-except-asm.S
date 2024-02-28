@@ -99,6 +99,8 @@ data_abort_full:
     @ initially we just forward to staff
     @ b staff_data_abort_trampoline_full
 
+    mov sp, #INT_STACK_ADDR
+
     ldm r0, {r0-r12}^
     str r0, [sp, #0]
     str r1, [sp, #4]
@@ -126,7 +128,8 @@ data_abort_full:
     mrs r3, spsr
     str r3, [r2, #64] @ finish saving regs
     
-
+    mov sp, r2
+    @ mov lr, r1
     @ point r0 to the regs_t, r1 to spsr, r2 to pc
     mov r0, r2
     sub r2, r1, #8

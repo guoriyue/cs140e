@@ -27,4 +27,5 @@ void mini_step_init(step_handler_t h, void *data);
 
 // run <fn> in single step mode with <arg>
 uint32_t mini_step_run(void (*fn)(void*), void *arg);
+
 #endif
