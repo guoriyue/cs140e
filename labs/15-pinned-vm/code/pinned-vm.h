@@ -329,7 +329,7 @@ static inline void pin_mmu_disable(void) {
 void pin_mmu_switch(uint32_t pid, uint32_t asid);
 void staff_pin_mmu_switch(uint32_t pid, uint32_t asid);
 
-void staff_pin_mmu_init(uint32_t domain_reg);
+// void staff_pin_mmu_init(uint32_t domain_reg);
 void pin_mmu_init(uint32_t domain_reg);
 
 #endif

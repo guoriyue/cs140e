@@ -63,7 +63,7 @@ void notmain(void) {
     trace("about to enable\n");
 
     lockdown_print_entries("about to turn on first time");
-    staff_pin_mmu_switch(0,ASID1);
+    pin_mmu_switch(0,ASID1);
     pin_mmu_enable();
     printk("MMU is on\n");
     // staff_mmu_on_first_time(1, null_pt);

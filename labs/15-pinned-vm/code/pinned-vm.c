@@ -71,7 +71,7 @@ int tlb_contains_va(uint32_t *result, uint32_t va) {
     // printk("va=%x\n", va);
     // printk("lockdown_va_get()=%x\n", lockdown_va_get());
     // printk("result=%x\n", *result);
-    return staff_tlb_contains_va(result, va);
+    // return staff_tlb_contains_va(result, va);
     // looks up the virtual address
     // 1MB
     // 20 bits
@@ -231,14 +231,52 @@ void pin_mmu_init(uint32_t domain_reg) {
     // uint32_t page_size = 1<<14;
     // map the heap: for lab cksums must be at 0x100000.
     // kmalloc_init_set_start((void*)page_size, page_size);
-    staff_mmu_init();
-    // if we are correct this will never get accessed.
-    // since all valid entries are pinned.
+    // staff_mmu_init();
+    // // if we are correct this will never get accessed.
+    // // since all valid entries are pinned.
+
+
+    
+    // (1) initialize the hardware, (2) create the null page table, and (3) set the domain register.
     void *null_pt = kmalloc_aligned(4096*4, 1<<14);
     assert((uint32_t)null_pt % (1<<14) == 0);
 
+    staff_mmu_init();
+    // enum { 
+    //     dom_kern = 1, // domain id for kernel
+    // }; 
+
     // DOM_client 0b01
-    *(uint32_t*)domain_reg = 0b01;
+    // *(uint32_t*)domain_reg = 0b01;
+    staff_domain_access_ctrl_set(DOM_client << domain_reg * 2);
+    // staff_mmu_enable();
+
+
+    // kmalloc_init_set_start((void*)MB, MB);
+
+    // turn on the pinned MMU: identity map.
+    // procmap_t p = procmap_default_mk(kern_dom);
+    // procmap_pin_on(&p);
+
+    // typedef struct {
+    //     uint32_t addr, nbytes;
+    //     // need to have privileged.
+    //     enum { MEM_DEVICE, MEM_RW, MEM_RO } type;
+    //     unsigned dom;
+    // } pr_ent_t;
+    // typedef struct {
+    // #   define MAX_ENT 8
+    //     unsigned n;
+    //     unsigned dom_ids;       // all the domain ids in use.
+    //     pr_ent_t map[MAX_ENT];
+    // } procmap_t;
+
+    // procmap_t *p;
+    // p->n = 8;
+    // p->dom_ids = 0;
+    // // add entry <e> to procmap <p>
+    // p->map[0].addr = 0x100000;
+    // procmap_pin_on();
 
     // vector_base_set();
     // mmu_on_first_time(1, null_pt);
@@ -258,3 +296,55 @@ void pin_mmu_switch(uint32_t pid, uint32_t asid) {
 //     staff_pin_mmu_on(p);
 //     return;
 // }
+
+
+
+void lockdown_print_entry(unsigned idx) {
+    trace("   idx=%d\n", idx);
+    lockdown_index_set(idx);
+    uint32_t va_ent = lockdown_va_get();
+    uint32_t pa_ent = lockdown_pa_get();
+    unsigned v = bit_get(pa_ent, 0);
+
+    if(!v) {
+        trace("     [invalid entry %d]\n", idx);
+        return;
+    }
+
+    // 3-149
+    // ...fill in the needed vars...
+    uint32_t G = bit_get(va_ent, 9);
+    uint32_t asid = bits_get(va_ent, 0, 7);
+    uint32_t va = bits_get(va_ent, 12, 31);
+    trace("     va_ent=%x: va=%x|G=%d|ASID=%d\n",
+        va_ent, va, G, asid);
+
+    // 3-150
+    // ...fill in the needed vars...
+    uint32_t nsa = bit_get(pa_ent, 9);
+    uint32_t nstid = bit_get(pa_ent, 8);
+    uint32_t size = bits_get(pa_ent, 6, 7);
+    uint32_t apx = bit_get(pa_ent, 3);
+    uint32_t pa = bits_get(pa_ent, 12, 31);
+    trace("     pa_ent=%x: pa=%x|nsa=%d|nstid=%d|size=%b|apx=%b|v=%d\n",
+                pa_ent, pa, nsa,nstid,size, apx,v);
+
+    // 3-151
+    // ...fill in the needed vars...
+    uint32_t attr = lockdown_attr_get();
+    uint32_t dom = bits_get(attr, 7, 10);
+    uint32_t xn = bit_get(attr, 6);
+    uint32_t tex = bits_get(attr, 3, 5);
+    uint32_t C = bit_get(attr, 2);
+    uint32_t B = bit_get(attr, 1);
+    trace("     attr=%x: dom=%d|xn=%d|tex=%b|C=%d|B=%d\n",
+            attr, dom,xn,tex,C,B);
+}
+
+void lockdown_print_entries(const char *msg) {
+    trace("-----  <%s> ----- \n", msg);
+    trace("  pinned TLB lockdown entries:\n");
+    for(int i = 0; i < 8; i++)
+        lockdown_print_entry(i);
+    trace("----- ---------------------------------- \n");
+}

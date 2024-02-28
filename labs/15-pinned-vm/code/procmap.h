@@ -146,13 +146,13 @@ static inline void procmap_pin_on(procmap_t *p) {
     // compute all the domain permissions.
     uint32_t d = dom_perm(p->dom_ids, DOM_client);
 
-    staff_pin_mmu_init(d);
+    pin_mmu_init(d);
     procmap_pin(p);
 
     pin_debug("about to turn on mmu\n");
 
     // setup.
-    staff_pin_mmu_switch(0,1);
+    pin_mmu_switch(0,1);
     pin_mmu_enable();
 
     assert(mmu_is_enabled());
