@@ -236,6 +236,16 @@ If you want to use our stuff, there's a few helpers you implement.
 ----------------------------------------------------------------------
 ## Part 2: implement `pinned-vm.c:pin_mmu_init(uint32_t domain_reg)` 
 
+***NOTE:***
+  - Mostly ignore the comment in `pinned-vm.c` that says what to do.
+    You can look at the two test cases (see below) and do a diff against
+    `1-test-basic.c`.
+
+  - This part is mainly to get you to read the test case and understand
+    it since it's an extended example of how to do vm.  You want to 
+    (1) initialize the hardware, (2) create the null page table, and
+    (3) set the domain register.
+
 You should be able to pretty easily finish `pin_mmu_init` using
 the code from the first test case.
 
