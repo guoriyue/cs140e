@@ -4,6 +4,9 @@
   <img src="lab-memes/coding.jpg" width="400" />
 </p>
 
+New:
+  - [Final project logistics](./PROJECTS.md).
+
 Below describes where we're going and why.   The labs themselves have a
 lot more prose on each topic.  There is a pointer to where we currently
 are: the labs after this point can still see significant revisions.
@@ -207,8 +210,6 @@ driver.
 It's mid-term week so we take a bit of a breather and do some 
 fun/useful device stuff:
 
-11-imu-i2c
-12-i2c+mailboxes  
 
   - [11-imu-i2c](11-imu-i2c):  you'll write a driver for the
     InvenSense MPU-6050 accelerometer + gyroscope using the I2C protocol.
@@ -226,20 +227,27 @@ fun/useful device stuff:
 ---------------------------------------------------------------------
 ### 6. Execution (Part III)
 
-  - [11-equiv-proc](11-equiv-proc): we will give you a few hundred line,
-    trivial OS --- system calls, no virtual memory or file systems ---
-    and you will add user processes to it.  Being able to stare at a
-    tiny, complete system will give you a concrete place to stand and
-    understand what is going on in an OS.
+We'll now do the last block of execution labs.  
 
-    In addition: in order to make it so you are surprised if your OS
-    code is broken --- you'll implement a novel, wildly useful trick
-    for ruthlessly detecting subtle operating system mistakes using the
-    debug hardware.  It will prove invaluable next week when we do virtual
-    memory, a topic known for its extremely hard-to-track-down bugs.
+  - [13-ss-equiv](13-ss-equiv): You'll implement all the
+    staff .o code that you were using in lab 10.  After this lab, all
+    the code will be yours.
+
+    This is also exactly the code your OS will need to do full user/kernel
+    and kernel/kernel context switching.
+
+  - [14-ss-equiv-deux](14-ss-equiv-deux):  as the final step,
+    you'll use your debug hardware in tricky way to verify that your
+    context switching code is correct.    The method works more generally
+    to detect subtle operating system mistakes and will prove invaluable
+    next week when we do virtual memory, a topic known for its extremely
+    hard-to-track-down bugs.
+
+    As a side-effect this will verify that a pre-emptive threading system
+    that works with full process contexts works correctly.
 
 ---------------------------------------------------------------------
-### virtual memory
+### Virtual memory I
 
 We now build virtual memory which will let us add (1) general memory
 protection and (2) user processes that can safely run with their own
@@ -258,7 +266,7 @@ around this complexity.  But, after you understand how to build virtual
 memory there's nothing more complicated, so anything else should be
 relatively easy.
 
-  - [12-pinned-vm](12-pinned-vm): you will build a simple virtual memory
+  - [15-pinned-vm](15-pinned-vm): you will build a simple virtual memory
     system from ARM documents.   The interesting thing about this will
     be how little code is required.  You will exploit a neat, novel
     hack that lets you implement virtual memory without page tables,
@@ -269,16 +277,10 @@ relatively easy.
     missing translation faults.   You will be able to use this add
     both user-level and kernel-level protection.
 
-  - [13-vm-page-table](13-vm-page-table): you will add page tables to
+  - [16-vm-page-table](16-vm-page-table): you will add page tables to
     your previous system, making it fully general.  After both labs you
     should have a strong grasp of what, exactly, is going on.
 
-  - [14-virtual memory coherence](14-vm-coherence): The previous lab
-    defined the main noun in the virtual memory universe (the page
-    table); this lab does the main verbs used to set up the VM hardware,
-    including how to synchronize hardware, translation, and page table
-    state (more subtle than it sounds).  At the end you should be able
-    to delete all our starter code.
 
 ---------------------------------------------------------------------
 ### Networking
@@ -286,11 +288,22 @@ relatively easy.
 Having one pi that can only talk to itself is much less useful even two
 pi's that can talk to each other.   So we'll do some simple networking.
 
-   - [16-nrf-networking](16-nrf-networking): your system gets much
+   - [17-nrf-networking](17-nrf-networking): your system gets much
      more useful if it can control computation remotely.  To this end
      we write a simple bi-directional network implementation using the
      common, cheap NRF24L01+ RF trancievers.   As an extension you will
      build a network bootloader.
+
+---------------------------------------------------------------------
+### Virtual memory II
+
+  - [18-virtual memory coherence](18-vm-coherence): The previous lab
+    defined the main noun in the virtual memory universe (the page
+    table); this lab does the main verbs used to set up the VM hardware,
+    including how to synchronize hardware, translation, and page table
+    state (more subtle than it sounds).  At the end you should be able
+    to delete all our starter code.
+
 
 ---------------------------------------------------------------------
 ### file systems
