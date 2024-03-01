@@ -1,8 +1,8 @@
 BOOTLOADER = my-install
 
-PROGS += tests/1-test-basic.c
-PROGS += tests/1-test-setup.c
-PROGS += tests/1-test-two-addr.c
+# PROGS += tests/1-test-basic.c
+# PROGS += tests/1-test-setup.c
+# PROGS += tests/1-test-two-addr.c
 PROGS += tests/2-test-procmap.c
 # PROGS += tests/2-test-lookup.c
 # PROGS += tests/3-test-setup.c
@@ -23,14 +23,14 @@ COMMON_SRC += your-mmu-asm.S
 COMMON_SRC += mmu-helpers.c
 COMMON_SRC += mmu.c
 
-COMMON_SRC += pinned-vm.c
-COMMON_SRC += procmap.h
+# COMMON_SRC += pinned-vm.c
 
 # make sure can drop in staff.
 STAFF_OBJS += staff-mmu-asm.o  
 STAFF_OBJS += staff-mmu.o  
 STAFF_OBJS += staff-pt-vm.o  
-STAFF_OBJS += staff-pinned-vm.o
+# STAFF_OBJS += staff-pinned-vm.o
+# STAFF_OBJS += staff-mmu-except.o
 #COMMON_SRC += staff-mmu-asm.S 
 #COMMON_SRC += staff-mmu-except.c 
 #COMMON_SRC += staff-mmu.c 
