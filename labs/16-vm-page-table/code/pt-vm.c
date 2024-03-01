@@ -15,6 +15,9 @@ vm_pt_t *vm_pt_alloc(unsigned n) {
 
     // allocate pt with n entries.
     pt = staff_vm_pt_alloc(n);
+    // pt = kmalloc(nbytes);
+    // assert(pt);
+    // memset(pt, 0, nbytes);
 
     demand(is_aligned_ptr(pt, 1<<14), must be 14-bit aligned!);
     return pt;
@@ -72,7 +75,8 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     assert(index < PT_LEVEL1_N);
 
     vm_pte_t *pte = 0;
-    return staff_vm_map_sec(pt,va,pa,attr);
+    // return staff_vm_map_sec(pt,va,pa,attr);
+    
 
 
     if(verbose_p)

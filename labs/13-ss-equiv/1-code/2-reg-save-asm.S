@@ -10,14 +10,16 @@
 swi_trampoline:
     sub sp, #68
     stm sp, {r0-r12, sp, lr}^
-
-    add r0, sp, #60
-    stm r0, {lr}
+    add r3, sp, #64
+   
+    @ add r0, sp, #60
+    @ stm r0, {lr}
+    str lr, [sp, #60]
 
     add r0, sp, #64
     mrs r1, spsr
     stm r0, {r1}
-
+    
     mov r0, sp
 
     b do_syscall

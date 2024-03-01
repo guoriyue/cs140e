@@ -110,15 +110,17 @@ MK_FN(mode_get_lr_sp_asm)
     @ asm_todo("implement this");
     mrs r3, cpsr
     @ cps #SYS_MODE
-    msr cpsr, r0
+    msr cpsr_cxsf, r0
 
     @ USER And SYSTEM share the same sp/lr/cpsr
     @ mov r1, sp
     @ mov r2, lr
     stm r1, {sp}
     stm r2, {lr}
+    @ ldm r1, {sp}
+    @ ldm r2, {lr}
 
     @ cps #SUPER_MODE
-    msr cpsr, r3
+    msr cpsr_cxsf, r3
     bx lr
 

@@ -3,16 +3,27 @@
 #include "cpsr-util.h"
 #include "vector-base.h"
 void switchto_anymode_asm(uint32_t regs[17]);
-
-
-
+void mode_get_lr_sp_asm(uint32_t mode, uint32_t *lr, uint32_t *sp);
 int do_syscall(uint32_t regs[17]) {
+    // sp lr
+    // if not in user mode get the result
+    int cpsr = regs[16];
+    printk("cpsr %x\n", cpsr);
     int sysno = regs[0];
     trace("in syscall: sysno=%d\n", sysno);
-
-    for(unsigned i = 0; i < 17; i++) {
-        if(regs[i])
-            trace("reg[%d]=%x\n", i, regs[i]);
+    // user mode cpsr = 16
+    // abort mode cpsr = 23
+    if (regs[16] == 16) {
+        for(unsigned i = 0; i < 17; i++) {
+            if(regs[i])
+                trace("reg[%d]=%x\n", i, regs[i]);
+        }
+    } else {
+        mode_get_lr_sp_asm(cpsr, &regs[13], &regs[14]);
+        for(unsigned i = 0; i < 17; i++) {
+            if(regs[i])
+                trace("reg[%d]=%x\n", i, regs[i]);
+        }
     }
 
     assert(sysno == 0);

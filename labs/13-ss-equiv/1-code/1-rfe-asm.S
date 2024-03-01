@@ -115,8 +115,6 @@ do_another_mode:
 @     rfe sp
 @     asm_not_reached();
 
-
-
 MK_FN(switchto_anymode_asm)
     ldr r1, [r0, #64]  @ 16
     msr cpsr_cxsf, r1
