@@ -132,6 +132,7 @@ Testing:
 ----------------------------------------------------------------------
 ## Part 1: work through the routines in `pt-vm.c` and test cases.
 
+
 Go through and start implementing your own versions of the page table
 routines.  Again these roughly mirror pinned code you did last time.
 You'll write the code to fill in the page table assuming the use of
@@ -151,7 +152,42 @@ When you finish you should be able to:
   - remove `staff-pt-vm.o` from `STAFF_OBJS` in the `Makefile`.
   - `make check` should pass as before.
 
-### Hints for implementing `mmu_section`  (see `armv6-vm.h`)
+### NOTE: we use `pin_t` to specify memory attributes.
+
+To repeat the discussion above: for today we reuse the memory attribute
+structure `pin_t` (defined in `vm-attr.h`) from last lab.
+
+Even though it has the `pin_` prefix in its name, it is not specific to
+pinning: we use it to define what caching policy, protections,
+etc a given mapping needs.
+
+We reuse the name and type so you don't have to figure out some other
+way of specifying these attributes.  However, it is a little jarring to
+see the `pin_` even though we aren't using pinning.
+
+### Hints for implementing `vm_map_kernel`
+
+For `vm_map_kernel` you'll want to look at the routine
+`procmap.h:procmap_pin_on` in the last lab and just rewrite this routine
+to switch from using pinned routines to our page tables versions.
+You should also look at today's first test case `1-test-basic.c`
+to see what has to be done to set things up.  Also look at test
+`2-test-procmap.c` which uses `vm_map_kernel`.
+
+The goal of `vm_map_kernel` is to wrap up all the code to do the initial
+MMU initialization, and kernel memory mapping setup so that it can start
+running with virtual memory.
+
+  1. Compute the domains used in the procmap (same as in pinned).
+  2. Initialize the mmu with these domains (same as in pinned, though
+     different routine name).
+  3. Allocate the page table.
+  4. Setup all the mappings and check that they are in there (use `vm_lookup`)
+     You can call the `attr_mk` routine right above `vm_map_kernel` to 
+     compute the actual attributes for each type of memory page.
+  6. Enable the mmu if `enable_p` is set.
+
+### Hints for implementing `vm_map_sec`  (see `armv6-vm.h`)
 
 You'll want to look at your pinned code, since it works about the same.
 
