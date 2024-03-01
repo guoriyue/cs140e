@@ -3,6 +3,15 @@
 #include "helper-macros.h"
 #include "procmap.h"
 
+cp_asm_set(lockdown_index, p15, 5, c15, c4, 2)
+cp_asm_get(lockdown_index, p15, 5, c15, c4, 2)
+cp_asm_set(lockdown_pa, p15, 5, c15, c6, 2)
+cp_asm_get(lockdown_pa, p15, 5, c15, c6, 2)
+cp_asm_set(lockdown_va, p15, 5, c15, c5, 2)
+cp_asm_get(lockdown_va, p15, 5, c15, c5, 2)
+cp_asm_set(lockdown_attr, p15, 5, c15, c7, 2)
+cp_asm_get(lockdown_attr, p15, 5, c15, c7, 2)
+
 // turn this off if you don't want all the debug output.
 enum { verbose_p = 1 };
 enum { OneMB = 1024*1024 };
@@ -137,6 +146,7 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     // } fld_t;
     
     return staff_vm_map_sec(pt,va,pa,attr);
+    // pte = staff_vm_map_sec(pt,va,pa,attr);
 
     // lockdown_index_set(index);
     // uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
@@ -145,6 +155,18 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     // lockdown_pa_set(pa_ent);
     // uint32_t attr_ent = (attr.dom << 7) | (attr.mem_attr << 1);
     // lockdown_attr_set(attr_ent);
+    pte->sec_base_addr = pa >> 20;
+    pte->nG = 1;
+    pte->S = 0;
+    pte->APX = attr.AP_perm >> 1;
+    pte->TEX = attr.mem_attr >> 1;
+    pte->AP = attr.AP_perm;
+    pte->domain = attr.dom;
+    pte->IMP = 0;
+    pte->C = 0;
+    pte->B = 0;
+    pte->tag = 0b10;
+    pte->super = 0;
     // va_ent = va | (e.asid) | (e.G << 9);
     // lockdown_va_set(va_ent);
     // // 150, secure and non secure?
