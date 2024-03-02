@@ -145,7 +145,7 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     //         // sec_base_addr; // 20-31.  must be aligned.
     // } fld_t;
     
-    return staff_vm_map_sec(pt,va,pa,attr);
+    // return staff_vm_map_sec(pt,va,pa,attr);
     // pte = staff_vm_map_sec(pt,va,pa,attr);
 
     // lockdown_index_set(index);
@@ -178,29 +178,52 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     // printk("translation base: %x\n", translation_base);
     uint32_t first_level_table_idx = va >> 20;
     uint32_t first_level_descriptor_addr = translation_base + first_level_table_idx * 4 + 0b00;
-    // (uint32_t *)first_level_descriptor_addr = (uint32_t)pte;
-    vm_pte_t *pte = (vm_pte_t *)first_level_descriptor_addr;
+    pt[first_level_table_idx].tag = 0b10;
+    pt[first_level_table_idx].C = 0;
+    pt[first_level_table_idx].B = 0;
 
-    pte->tag = 0b10;
-    pte->C = 0;
-    pte->B = 0;
+    pt[first_level_table_idx].XN = 0;
+    pt[first_level_table_idx].domain = attr.dom;
+    pt[first_level_table_idx].IMP = 0;
 
-    pte->XN = 0b1;
-    // pte->domain = 0b11;
-    pte->domain = 0b1;
-    pte->IMP = 0;
-
-    // pte->AP = 0b11;
-    pte->AP = 0b1;
-    // pte->TEX = 0b000;
-    pte->TEX = 0b1;
-    pte->APX = 0;
+    // // mem_attr_t 5 bits
+    // mem_perm_t 3 bits
+    pt[first_level_table_idx].AP = attr.AP_perm & 0b11;
+    pt[first_level_table_idx].TEX = 0b1;
+    pt[first_level_table_idx].APX = attr.AP_perm >> 2;
 
     // S is X
-    pte->nG = 0;
-    pte->super = 0;
+    pt[first_level_table_idx].nG = ~attr.G;
+    pt[first_level_table_idx].super = 0;
     // _sbz1
-    pte->sec_base_addr = pa >> 20;
+    pt[first_level_table_idx].sec_base_addr = pa >> 20;
+
+    vm_pte_t *pte = &pt[first_level_table_idx];
+
+    // uint32_t first_level_descriptor_addr = translation_base + first_level_table_idx * 4 + 0b00;
+    // // (uint32_t *)first_level_descriptor_addr = (uint32_t)pte;
+    // vm_pte_t *pte = (vm_pte_t *)first_level_descriptor_addr;
+
+    // pte->tag = 0b10;
+    // pte->C = 0;
+    // pte->B = 0;
+
+    // pte->XN = 0b1;
+    // // pte->domain = 0b11;
+    // pte->domain = 0b1;
+    // pte->IMP = 0;
+
+    // // pte->AP = 0b11;
+    // pte->AP = 0b1;
+    // // pte->TEX = 0b000;
+    // pte->TEX = 0b1;
+    // pte->APX = 0;
+
+    // // S is X
+    // pte->nG = 0;
+    // pte->super = 0;
+    // // _sbz1
+    // pte->sec_base_addr = pa >> 20;
 
     // some_pte = pte;
     

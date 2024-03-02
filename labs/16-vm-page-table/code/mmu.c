@@ -41,15 +41,21 @@ void mmu_disable(void) {
 // real work (you'll write this code next time).
 void mmu_enable_set(cp15_ctrl_reg1_t c) {
     assert(c.MMU_enabled);
+    // printk("before staff_mmu_enable_set_asm\n");
     staff_mmu_enable_set_asm(c);
+    // printk("after staff_mmu_enable_set_asm\n");
 }
 
 // enable mmu by flipping enable bit.
 void mmu_enable(void) {
+    // printk("enabling mmu\n");
     cp15_ctrl_reg1_t c = cp15_ctrl_reg1_rd();
+    // printk("c=%x\n", c);
     assert(!c.MMU_enabled);
     c.MMU_enabled = 1;
+    // printk("before mmu_enable_set\n");
     mmu_enable_set(c);
+    // printk("after mmu_enable_set\n");
 }
 
 // C end of this: does sanity checking then calls asm.
