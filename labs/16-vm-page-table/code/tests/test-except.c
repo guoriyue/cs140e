@@ -5,7 +5,8 @@
 //  3. with VM on, write to an unmapped address and make sure we 
 //     get a fault.
 #include "rpi.h"
-#include "pinned-vm.h"
+// #include "pinned-vm.h"
+#include "pt-vm.h"
 #include "mmu.h"       
 
 // from last lab.
@@ -36,7 +37,7 @@ static void fault_handler(regs_t *r) {
 
     // re-enable the domain permissions.
     uint32_t dacs = DOM_client << 1*2 | DOM_client << 2*2;
-    staff_domain_access_ctrl_set(dacs);
+    domain_access_ctrl_set(dacs);
 
     
 
@@ -98,12 +99,13 @@ void notmain(void) {
 
     // if we are correct this will never get accessed.
     // since all valid entries are pinned.
-    void *null_pt = kmalloc_aligned(4096*4, 1<<14);
-    assert((uint32_t)null_pt % (1<<14) == 0);
+    vm_pt_t *pt = vm_pt_alloc(PT_LEVEL1_N);
+    // void *null_pt = kmalloc_aligned(4096*4, 1<<14);
+    // assert((uint32_t)null_pt % (1<<14) == 0);
 
     // initialize everything, after bootup.
     // <mmu.h>
-    staff_mmu_init();
+    vm_mmu_init(dom_no_access);
 
     // definitions in <pinned-vm.h>
     //
@@ -133,9 +135,12 @@ void notmain(void) {
     pin_t dev  = pin_mk_global(dom_kern, no_user, MEM_device);
     
     // map all device memory to itself.  ("identity map")
-    pin_mmu_sec(idx++, 0x20000000, 0x20000000, dev);   // tlb 0
-    pin_mmu_sec(idx++, 0x20100000, 0x20100000, dev);   // tlb 1
-    pin_mmu_sec(idx++, 0x20200000, 0x20200000, dev);   // tlb 2
+    // pin_mmu_sec(idx++, 0x20000000, 0x20000000, dev);   // tlb 0
+    // pin_mmu_sec(idx++, 0x20100000, 0x20100000, dev);   // tlb 1
+    // pin_mmu_sec(idx++, 0x20200000, 0x20200000, dev);   // tlb 2
+    vm_map_sec(pt, 0x20000000, 0x20000000, dev);
+    vm_map_sec(pt, 0x20100000, 0x20100000, dev);
+    vm_map_sec(pt, 0x20200000, 0x20200000, dev);
     // vm map
 
     // ******************************************************
@@ -156,17 +161,32 @@ void notmain(void) {
     // mapped, but our code starts at 0x8000 and we are using
     // 1mb sections.  you can fix this as an extension.  
     // very useful!
-    pin_mmu_sec(idx++, 0, 0, kern);                    // tlb 3
-    pin_t heap = pin_mk_global(dom_heap, no_user, MEM_uncached);
-    pin_mmu_sec(idx++, OneMB, OneMB, heap);            // tlb 4
+    vm_map_sec(pt, 0, 0, kern);              
+    vm_map_sec(pt, OneMB, OneMB, kern);     
 
+
+    pin_t heap = pin_mk_global(dom_heap, no_user, MEM_uncached);
+    vm_map_sec(pt, OneMB, OneMB, heap);            // tlb 4
+    
     // now map kernel stack (or nothing will work)
     uint32_t kern_stack = STACK_ADDR-OneMB;
-    pin_mmu_sec(idx++, kern_stack, kern_stack, kern);   // tlb 5
+    vm_map_sec(pt, kern_stack, kern_stack, kern);   // tlb 5
     uint32_t except_stack = INT_STACK_ADDR-OneMB;
 
     // Q2: if you comment this out, what happens?
-    pin_mmu_sec(idx++, except_stack, except_stack, kern);
+    vm_map_sec(pt, except_stack, except_stack, kern);
+
+    // pin_mmu_sec(idx++, 0, 0, kern);                    // tlb 3
+    
+    // pin_mmu_sec(idx++, OneMB, OneMB, heap);            // tlb 4
+
+    // // now map kernel stack (or nothing will work)
+    // uint32_t kern_stack = STACK_ADDR-OneMB;
+    // pin_mmu_sec(idx++, kern_stack, kern_stack, kern);   // tlb 5
+    // uint32_t except_stack = INT_STACK_ADDR-OneMB;
+
+    // // Q2: if you comment this out, what happens?
+    // pin_mmu_sec(idx++, except_stack, except_stack, kern);
     // no exception stack, will hang
     // cannot jump to fault_handler and returns
 
@@ -179,7 +199,7 @@ void notmain(void) {
 
     // Q3: if you set this to ~0, what happens w.r.t. Q1?
     uint32_t dacs = DOM_client << dom_kern*2;
-    staff_domain_access_ctrl_set(dacs);
+    domain_access_ctrl_set(dacs);
      
     // staff_domain_access_ctrl_set(~0); 
     // works fine
@@ -193,7 +213,7 @@ void notmain(void) {
     //  - the page table is empty (since pinning) and is
     //    just to catch errors.
     enum { ASID = 1, PID = 128 };
-    staff_mmu_set_ctx(PID, ASID,null_pt);
+    mmu_set_ctx(PID, ASID,pt);
 
     // if you want to see the lockdown entries.
     // lockdown_print_entries("about to turn on first time");
@@ -222,12 +242,33 @@ void notmain(void) {
     full_except_set_data_abort(fault_handler);
     full_except_set_prefetch(fault_handler);
 
+    
 
-    staff_mmu_enable();
+
+    // 
+
+    // // the address we will write to (2MB) we know this is not mapped.
+    // illegal_addr = OneMB + OneMB;
+
+    // // this <PUT32> should "work" since vm is off.
+    // assert(!mmu_is_enabled());
+    // PUT32(illegal_addr, 0xdeadbeef);
+    // trace("we wrote without vm: got %x\n", GET32(illegal_addr));
+    // assert(GET32(illegal_addr) == 0xdeadbeef);
+
+    // // this should fault.
+    // vm_mmu_enable();
+    // assert(mmu_is_enabled());
+    // PUT32(illegal_addr, 0xdeadbeef);
+
+    // panic("should not reach here\n");
+
+
+    vm_mmu_enable();
     illegal_addr = OneMB + 0x1000;
     trace("remove permissions for d: got %x\n", GET32(illegal_addr));
 
-    staff_domain_access_ctrl_set(0b01<<1*2);
+    domain_access_ctrl_set(0b01<<1*2);
     trace("try PUT32\n");
     PUT32(illegal_addr, 0xdeadbeef);
 
@@ -240,7 +281,7 @@ void notmain(void) {
     *(uint32_t*)illegal_addr = bx_lr;
     trace("try jump\n");
     // can also cast to a function pointer and call it
-    staff_domain_access_ctrl_set(0b01<<1*2);
+    domain_access_ctrl_set(0b01<<1*2);
     BRANCHTO(illegal_addr);
     // asm volatile("bx %0" : : "r" (illegal_addr));
     

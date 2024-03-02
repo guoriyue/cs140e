@@ -1,4 +1,4 @@
-objs/tests/1-test-basic.o: tests/1-test-basic.c \
+objs/tests/test-except.o: tests/test-except.c \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/libc/demand.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/gpio.h \
@@ -16,7 +16,8 @@ objs/tests/1-test-basic.o: tests/1-test-basic.c \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/full-except.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/src/vector-base.h \
  /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/asm-helpers.h \
- /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/switchto.h
+ /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/switchto.h \
+ mmu.h procmap.h
 
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/rpi.h:
 
@@ -61,3 +62,7 @@ procmap.h:
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/asm-helpers.h:
 
 /Users/guomingfei/Desktop/cs140e/cs140e-24win/libpi/include/switchto.h:
+
+mmu.h:
+
+procmap.h:
