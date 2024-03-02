@@ -1,12 +1,12 @@
 BOOTLOADER = my-install
 
-# PROGS += tests/1-test-basic.c
-# PROGS += tests/1-test-setup.c
-# PROGS += tests/1-test-two-addr.c
-# PROGS += tests/2-test-procmap.c
-# PROGS += tests/2-test-lookup.c
-# PROGS += tests/3-test-setup.c
-PROGS += tests/part3.c
+PROGS += tests/1-test-basic.c
+PROGS += tests/1-test-setup.c
+PROGS += tests/1-test-two-addr.c
+PROGS += tests/2-test-procmap.c
+# PROGS += tests/test-except.c
+# PROGS += tests/part3.c
+
 # PROGS = $(wildcard tests/[0-7]-test*.c)
 
 O = $(CS140E_2024_PATH)/libpi

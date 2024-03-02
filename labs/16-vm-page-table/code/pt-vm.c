@@ -84,7 +84,7 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     unsigned index = va >> 20;
     assert(index < PT_LEVEL1_N);
 
-    vm_pte_t *pte = 0;
+    // vm_pte_t *pte = 0;
 
     // typedef struct {
     //     // for today we only handle 1MB sections.
@@ -148,24 +148,52 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     return staff_vm_map_sec(pt,va,pa,attr);
     // pte = staff_vm_map_sec(pt,va,pa,attr);
 
-    lockdown_index_set(index);
-    uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
-    lockdown_va_set(va_ent);
-    uint32_t pa_ent = pa | (attr.pagesize << 6) | (attr.AP_perm << 1) | 1;
-    lockdown_pa_set(pa_ent);
-    uint32_t attr_ent = (attr.dom << 7) | (attr.mem_attr << 1);
-    lockdown_attr_set(attr_ent);
+    // lockdown_index_set(index);
+    // uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
+    // lockdown_va_set(va_ent);
+    // uint32_t pa_ent = pa | (attr.pagesize << 6) | (attr.AP_perm << 1) | 1;
+    // lockdown_pa_set(pa_ent);
+    // uint32_t attr_ent = (attr.dom << 7) | (attr.mem_attr << 1);
+    // lockdown_attr_set(attr_ent);
+
+    // pte->tag = 0b10;
+    // pte->C = 0;
+    // pte->B = 0;
+
+    // pte->XN = 1;
+    // pte->domain = 0b11;
+    // pte->IMP = 0;
+
+    // pte->AP = 0b11;
+    // pte->TEX = 0b000;
+    // pte->APX = 0;
+
+    // // S is X
+    // pte->nG = 0;
+    // pte->super = 0;
+    // // _sbz1
+    // pte->sec_base_addr = pa >> 20;
+
+    uint32_t translation_base = (uint32_t)pt;
+    // printk("translation base: %x\n", translation_base);
+    uint32_t first_level_table_idx = va >> 20;
+    uint32_t first_level_descriptor_addr = translation_base + first_level_table_idx * 4 + 0b00;
+    // (uint32_t *)first_level_descriptor_addr = (uint32_t)pte;
+    vm_pte_t *pte = (vm_pte_t *)first_level_descriptor_addr;
 
     pte->tag = 0b10;
     pte->C = 0;
     pte->B = 0;
 
-    pte->XN = 1;
-    pte->domain = 0b11;
+    pte->XN = 0b1;
+    // pte->domain = 0b11;
+    pte->domain = 0b1;
     pte->IMP = 0;
 
-    pte->AP = 0b11;
-    pte->TEX = 0b000;
+    // pte->AP = 0b11;
+    pte->AP = 0b1;
+    // pte->TEX = 0b000;
+    pte->TEX = 0b1;
     pte->APX = 0;
 
     // S is X
@@ -173,6 +201,15 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     pte->super = 0;
     // _sbz1
     pte->sec_base_addr = pa >> 20;
+
+    // some_pte = pte;
+    
+    // uint32_t first_level_descriptor = GET32(first_level_descriptor_addr);
+    // vm_pte_t *pte = (vm_pte_t *)first_level_descriptor_addr;
+    // printk("first_level_descriptor: %x\n", first_level_descriptor);
+    // pte = (vm_pte_t *)first_level_descriptor;
+    // printk("pa: %x\n", pa);
+    
     
     // va_ent = va | (e.asid) | (e.G << 9);
     // lockdown_va_set(va_ent);
@@ -212,27 +249,33 @@ vm_pte_t * vm_lookup(vm_pt_t *pt, uint32_t va) {
 //
 // NOTE: we can't just return the result b/c page 0 could be mapped.
 vm_pte_t *vm_xlate(uint32_t *pa, vm_pt_t *pt, uint32_t va) {
-    return staff_vm_xlate(pa,pt,va);
-    printk("before vm_xlate: pa: ================================================ \n");
-    vm_pte_t *pte = staff_vm_xlate(pa,pt,va);
-    printk("staff_vm_xlate: ================================================ \n");
-    vm_pte_print(pt,pte);
+    // return staff_vm_xlate(pa,pt,va);
+    // printk("before vm_xlate: pa: ================================================ \n");
+    // vm_pte_t *pte = staff_vm_xlate(pa,pt,va);
+    // printk("staff_vm_xlate: ================================================ \n");
+    // vm_pte_print(pt,pte);
 
-    uint32_t translation_base = pt->sec_base_addr;
+    uint32_t translation_base = (uint32_t)pt;
+    // &pt;//pointer to the begininf of the
+    // read pa
+    // modify pte
     uint32_t first_level_table_idx = va >> 20;
-    printk("translation base: %x\n", translation_base);
-    printk("first_level_table_idx: %x\n", first_level_table_idx);
-    uint32_t first_level_descriptor_addr = (translation_base << 20) + first_level_table_idx * 4 + 0b10;
-    // uint32_t first_level_descriptor_addr = pt & 0xFFF00000 + first_level_table_idx * 4 + 0b10;
-    uint32_t first_level_descriptor = GET32(first_level_descriptor_addr);
-    *pa = (first_level_descriptor & 0xFFF00000) | (va & 0xFFFFF);
-    pte = (vm_pte_t *)first_level_descriptor;
-    printk("my_vm_xlate: ================================================ \n");
-    vm_pte_print(pt,pte);
     // printk("translation base: %x\n", translation_base);
-    // printk("pt->sec_base_addr: %x\n", pt->sec_base_addr);
+    // printk("first_level_table_idx: %x\n", first_level_table_idx);
+    vm_pte_t *pte = &pt[first_level_table_idx];
+    *pa = (pte->sec_base_addr << 20) | (va & 0xFFFFF);
+    // uint32_t first_level_descriptor_addr = (translation_base << 20) + first_level_table_idx * 4 + 0b00;
+    // // uint32_t first_level_descriptor_addr = pt & 0xFFF00000 + first_level_table_idx * 4 + 0b10;
+    // // vm_pte_t * pte = (vm_pte_t *)first_level_descriptor_addr;
+    // uint32_t first_level_descriptor = GET32(first_level_descriptor_addr);
+    // *pa = (first_level_descriptor & 0xFFF00000) | (va & 0xFFFFF);
+    // pte = (vm_pte_t *)first_level_descriptor;
+    // printk("my_vm_xlate: ================================================ \n");
+    // vm_pte_print(pt,pte);
+    // // printk("translation base: %x\n", translation_base);
+    // // printk("pt->sec_base_addr: %x\n", pt->sec_base_addr);
     
-    printk("after vm_xlate: pa: ================================================ \n");
+    // printk("after vm_xlate: pa: ================================================ \n");
     // return 0;
     return pte;
 }

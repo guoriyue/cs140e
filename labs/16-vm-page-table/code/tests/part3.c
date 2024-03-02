@@ -2,7 +2,10 @@
 #include "procmap.h"
 
 #define MOD 10005
-
+// coproc
+// chapter 3
+// dcache 
+// icache
 void notmain(void) { 
     int mat_a[1024 * 128];
     int mat_b[128 * 16];
