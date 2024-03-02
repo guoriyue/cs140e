@@ -1,11 +1,12 @@
 BOOTLOADER = my-install
 
-PROGS += tests/1-test-basic.c
+# PROGS += tests/1-test-basic.c
 # PROGS += tests/1-test-setup.c
 # PROGS += tests/1-test-two-addr.c
 # PROGS += tests/2-test-procmap.c
 # PROGS += tests/2-test-lookup.c
 # PROGS += tests/3-test-setup.c
+PROGS += tests/part3.c
 # PROGS = $(wildcard tests/[0-7]-test*.c)
 
 O = $(CS140E_2024_PATH)/libpi
@@ -15,14 +16,12 @@ STAFF_OBJS += $(O)/staff-objs/staff-switchto-asm.o
 
 # this is the one file you'll modify.
 COMMON_SRC += pt-vm.c
-
 # you'll write this next time.
 COMMON_SRC += your-mmu-asm.S 
 
 # we give you this.
 COMMON_SRC += mmu-helpers.c
 COMMON_SRC += mmu.c
-
 # COMMON_SRC += pinned-vm.c
 
 # make sure can drop in staff.

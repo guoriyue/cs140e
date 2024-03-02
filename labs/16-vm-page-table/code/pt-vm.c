@@ -148,25 +148,32 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     return staff_vm_map_sec(pt,va,pa,attr);
     // pte = staff_vm_map_sec(pt,va,pa,attr);
 
-    // lockdown_index_set(index);
-    // uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
-    // lockdown_va_set(va_ent);
-    // uint32_t pa_ent = pa | (attr.pagesize << 6) | (attr.AP_perm << 1) | 1;
-    // lockdown_pa_set(pa_ent);
-    // uint32_t attr_ent = (attr.dom << 7) | (attr.mem_attr << 1);
-    // lockdown_attr_set(attr_ent);
-    pte->sec_base_addr = pa >> 20;
-    pte->nG = 1;
-    pte->S = 0;
-    pte->APX = attr.AP_perm >> 1;
-    pte->TEX = attr.mem_attr >> 1;
-    pte->AP = attr.AP_perm;
-    pte->domain = attr.dom;
-    pte->IMP = 0;
+    lockdown_index_set(index);
+    uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
+    lockdown_va_set(va_ent);
+    uint32_t pa_ent = pa | (attr.pagesize << 6) | (attr.AP_perm << 1) | 1;
+    lockdown_pa_set(pa_ent);
+    uint32_t attr_ent = (attr.dom << 7) | (attr.mem_attr << 1);
+    lockdown_attr_set(attr_ent);
+
+    pte->tag = 0b10;
     pte->C = 0;
     pte->B = 0;
-    pte->tag = 0b10;
+
+    pte->XN = 1;
+    pte->domain = 0b11;
+    pte->IMP = 0;
+
+    pte->AP = 0b11;
+    pte->TEX = 0b000;
+    pte->APX = 0;
+
+    // S is X
+    pte->nG = 0;
     pte->super = 0;
+    // _sbz1
+    pte->sec_base_addr = pa >> 20;
+    
     // va_ent = va | (e.asid) | (e.G << 9);
     // lockdown_va_set(va_ent);
     // // 150, secure and non secure?
@@ -188,7 +195,14 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
 // lookup 32-bit address va in pt and return the pte
 // if it exists, 0 otherwise.
 vm_pte_t * vm_lookup(vm_pt_t *pt, uint32_t va) {
-    return staff_vm_lookup(pt,va);
+    // return staff_vm_lookup(pt,va);
+    uint32_t first_level_table_idx = va >> 20;
+    vm_pt_t *pte = &pt[first_level_table_idx];
+    if (pte && pte->tag == 0b10) {
+        return pte;
+    } else {
+        return 0;
+    }
 }
 
 // manually translate <va> in page table <pt>
@@ -199,6 +213,28 @@ vm_pte_t * vm_lookup(vm_pt_t *pt, uint32_t va) {
 // NOTE: we can't just return the result b/c page 0 could be mapped.
 vm_pte_t *vm_xlate(uint32_t *pa, vm_pt_t *pt, uint32_t va) {
     return staff_vm_xlate(pa,pt,va);
+    printk("before vm_xlate: pa: ================================================ \n");
+    vm_pte_t *pte = staff_vm_xlate(pa,pt,va);
+    printk("staff_vm_xlate: ================================================ \n");
+    vm_pte_print(pt,pte);
+
+    uint32_t translation_base = pt->sec_base_addr;
+    uint32_t first_level_table_idx = va >> 20;
+    printk("translation base: %x\n", translation_base);
+    printk("first_level_table_idx: %x\n", first_level_table_idx);
+    uint32_t first_level_descriptor_addr = (translation_base << 20) + first_level_table_idx * 4 + 0b10;
+    // uint32_t first_level_descriptor_addr = pt & 0xFFF00000 + first_level_table_idx * 4 + 0b10;
+    uint32_t first_level_descriptor = GET32(first_level_descriptor_addr);
+    *pa = (first_level_descriptor & 0xFFF00000) | (va & 0xFFFFF);
+    pte = (vm_pte_t *)first_level_descriptor;
+    printk("my_vm_xlate: ================================================ \n");
+    vm_pte_print(pt,pte);
+    // printk("translation base: %x\n", translation_base);
+    // printk("pt->sec_base_addr: %x\n", pt->sec_base_addr);
+    
+    printk("after vm_xlate: pa: ================================================ \n");
+    // return 0;
+    return pte;
 }
 
 // compute the default attribute for each type.
