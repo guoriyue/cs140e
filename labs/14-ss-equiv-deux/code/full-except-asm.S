@@ -1,22 +1,3 @@
-@ this file defines the trampolines used to forward exception/interrupts
-@ to <full-except.c>
-@
-@ each should:
-@   1. save all the registers (spsr, r0-r15) onto the stack
-@      in a <regs_t> layout.  (as before: r0 at offset 0, 
-@      r1 at byte offset 4, etc)
-@
-@   2. call the associated full except handler in <full-except.c>
-@
-@      the key property: if we call <switchto> on these 
-@      saved registers execution should resume in "the
-@      right place"  --- for exceptions/interrupts
-@      exactly where the exception occured, for the
-@      system call one instructon after.
-@
-@  currently we only define three full exception handlers, you can 
-@  add the rest.
-
 #include "rpi-asm.h"
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -79,13 +60,22 @@ MK_TRAMPOLINE(interrupt,        4, int_vector)
 @    faulted.
 prefetch_handler_full:
     @ initially we just forward to staff
-    b staff_prefetch_trampoline_full
+    @ b staff_prefetch_trampoline_full
 
     mov sp, #INT_STACK_ADDR
     sub   lr, lr, #4
 
-    asm_todo("save all the regs in a reg_t on the stack") 
-    asm_todo("mov regs into r0, spsr into r1, pc into r2")
+    @ asm_todo("save all the regs in a reg_t on the stack") 
+    @ asm_todo("mov regs into r0, spsr into r1, pc into r2")
+
+    stm sp, {r0-r12, sp, lr}^
+    str lr, [sp, #60]
+    mrs r12, spsr
+    str r12, [sp, #64]
+
+    mov r0, sp
+    mrs r1, spsr
+    mov r2, lr
 
     bl prefetch_abort_full_except
     asm_not_reached();
@@ -96,44 +86,20 @@ prefetch_handler_full:
 @  - the pc in <regs> should point to the instruction that
 @    faulted.
 data_abort_full:
-    @ initially we just forward to staff
     @ b staff_data_abort_trampoline_full
 
     mov sp, #INT_STACK_ADDR
+    sub lr, lr, #8
 
-    ldm r0, {r0-r12}^
-    str r0, [sp, #0]
-    str r1, [sp, #4]
-    str r2, [sp, #8]
-    str r3, [sp, #12]
-    str r4, [sp, #16]
-    str r5, [sp, #20]
-    str r6, [sp, #24]
-    str r7, [sp, #28]
-    str r8, [sp, #32]
-    str r9, [sp, #36]
-    str r10, [sp, #40]
-    str r11, [sp, #44]
-    str r12, [sp, #48]
+    stm sp, {r0-r12, sp, lr}^
+    str lr, [sp, #60]
+    mrs r12, spsr
+    str r12, [sp, #64]
 
-    mov r1, lr @ save current mode lr, not user mode lr
-    mov r2, sp @ save current mode sp, not user mode sp
-    ldm lr, {lr}^
-    ldm sp, {sp}^
-
-    str sp, [r2, #52]
-    str lr, [r2, #56] @ save user mode lr and sp to super stack
-    sub r3, r1, #8 @ pc of abort instruction
-    str r3, [r2, #60]
-    mrs r3, spsr
-    str r3, [r2, #64] @ finish saving regs
-    
-    mov sp, r2
-    @ mov lr, r1
-    @ point r0 to the regs_t, r1 to spsr, r2 to pc
-    mov r0, r2
-    sub r2, r1, #8
+    mov r0, sp
     mrs r1, spsr
+    mov r2, lr
+
     bl data_abort_full_except
     asm_not_reached();
 
@@ -144,10 +110,17 @@ data_abort_full:
 @
 @ the pc in <regs> should point to the instruction after.
 syscall_full:
-    @ initially we just forward to staff
-    b staff_syscall_trampoline_full
+    mov sp, #INT_STACK_ADDR
+    @ b staff_syscall_trampoline_full
 
-    asm_todo("implement: do not set sp!")
+    stm sp, {r0-r12, sp, lr}^
+    str lr, [sp, #60]
+    mrs r12, spsr
+    str r12, [sp, #64]
+
+    mov r0, sp
+    mrs r1, spsr
+    mov r2, lr
 
     bl syscall_full_except
     asm_not_reached();

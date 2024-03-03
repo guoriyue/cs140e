@@ -129,7 +129,7 @@ void mini_step_init(step_handler_t h, void *data) {
     assert(h);
     step_handler_data = data;
     step_handler = h;
-    printk("11111111 mini_step_init h = %x\n", (uint32_t)h);
+    // printk("11111111 mini_step_init h = %x\n", (uint32_t)h);
 
     // todo("setup the rest");
 

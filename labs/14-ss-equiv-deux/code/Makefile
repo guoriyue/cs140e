@@ -23,8 +23,10 @@ START_ASM = staff-start.S
 
 # new test 8
 # PROGS := $(wildcard ./[10]-*.c)
-# PROGS := 10-equiv-test.c
-PROGS := 1-watchpt-test.c
+PROGS := 10-equiv-test.c
+# PROGS := 9-equiv-test.c
+# PROGS := 1-watchpt-test.c
+# PROGS := $(wildcard ./[0-8]-*.c)
 
 GREP_STR := 'TRACE:\|THREAD:\|ERROR:\|PANIC:' 
 include $(CS140E_2024_PATH)/libpi/mk/Makefile.template-fixed
