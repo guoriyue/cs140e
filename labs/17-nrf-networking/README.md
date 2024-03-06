@@ -1,8 +1,9 @@
 ## Get two nrf24l01p RF tranceivers to talk to each other.
 
 <p align="center">
-  <img src="images/rpi-cables.png" width="450" />
+  <img src="images/pi-network.jpg" width="650" />
 </p>
+
 
 Today you'll build some code to make the NRF chips we have talk to
 each other.   The lab is organized as a fetch-quest where you'll build
@@ -36,23 +37,28 @@ If you are doing this *without* Parthiv's board and need to wire things
 up with jumpers, the 2022 NRF lab has some discussion 
 on [how to do this](https://github.com/dddrrreee/cs140e-22win/tree/main/labs/17-nrf24l01p).
 
-
 What you will change:
   - `nrf-driver.c`: all the code you write will be in here.
-  - `nrf-default-values.h`: different default values for the NRF.  You 
-    can change these.
 
-What you should not have to change:
-  
-  - `nrf-public.c`: helpers that wrap up the NRF driver interface for
-    clients to send and receive.  These are the routines that will call
-    your call your driver.
-  - `nrf-hw-support.c` and `nrf-hw-support.h`: a bunch of support for
-    reading and writing the NRF over SPI.
-  - `nrf-test.h`: helpers for testing.  Useful to look at to see how
+  - `nrf-default-values.h`: different default values for the NRF.  You 
+    can change these if you want to tweak different decisions, but
+    you don't have to.
+
+Key files that you should not have to change:
+ - `nrf.h`: defines the `nrf_t` the NIC structure and `nrf_config_t`
+   which holds some of the configuration.  
+ - `nrf-hw-support.h`: many accessors for reading and writing
+    NRF registers and SPI interface. You really want to look at this 
+    to save time.
+ - `nrf-hw-support.c`: SPI read/write routine implementation, routines
+    to dump the NRF configuration.
+ - `nrf-default-values.h`: default values for NRF hardware choices.
+    You want to look at to see what we can change and for where
+    to get the requested values.
+ - `nrf-public.c` simple veneer over the top of NRF interface.
+ - `nrf-test.h`: helpers for testing.  Useful to look at to see how
     to use the NRF interfaces.
-  - `tests/*.c`: tests.  Useful to look at to see how
-    to use the NRF interfaces.
+ - `tests/*.c`: tests.  Useful to look at to see how to use the NRF interfaces.
 
 #### Checkoff
 
@@ -60,18 +66,26 @@ Pretty simple:
   1.  You should have implemented your own copies of the `staff_` routines
       and removed `staff-nrf-driver.o` from the makefile.
   2. `make check` should pass.
+  3. Adapt a test case to ping pong with your partner.
 
 Extension:
   - You can always do this lab on hard mode and build your own from scratch:
      you'll learn alot.  The tests give reasonable iterfaces.
 
 --------------------------------------------------------------------------------
-### Part 1: Implement `nrf-driver.c:nrf_init`.
+### Part 0: Implement `nrf-driver.c:nrf_init`.
+
+***tl;dr***:
+  1. Look at `tests/0-ack-check.c` and `tests/0-no-ack-check.c`
+  2. Implement `nrf_init`.
+  3. `make check` for the `tests/0-ack-check.c` and `tests/0-no-ack-check.c`
+     should pass.
 
 This is the longest part, since you need to set all the regsiters,
 but it's also probably the most superficial, in that you can just
 use `nrf_dump` to get our hardware configuration and then walk down,
 replicating it.
+
 
 As mentioned above, for simplicity, you'll only configure the NRF to use
 a single pipe.  This pipe can either be initialized for acknowledgements
@@ -95,6 +109,10 @@ Cheat code:
      It should be the case that if you change default values that both
      still agree!
 
+NOTE: 
+   - If you've finished init (and your dump matches the staff), but you can't
+     tx/rx/ack anything, make sure you're setting the CE pin correctly (it's
+     a GPIO pin, so you have to control it manually)
 
 #### Two key helpers: use these.
 
@@ -130,7 +148,7 @@ When setting up values, use the following two routines
 
 #### Key points: read this before coding.
 
-Some advice:
+Some advice (which should duplicate the comments in `nrf_init`):
 
   0. Before you start reading and writing the NRF you need to setup the 
      structure:
@@ -203,7 +221,6 @@ RX mode:
     Thus, RX mode: `CE=1` and `NRF_CONFIG=rx_config`.
     TX mode: `CE=1` and `NRF_CONFIG=tx_config`.
 
-
   - Your code will go back and forth between RX mode and TX modes
     in multiple places. After all the debugging in the lab, I strongly
     suggest you write two routines (e.g., `nrf_tx_mode` and `nrf_rx_mode`)
@@ -236,7 +253,20 @@ Second most common bug: in `nrf_init` hardcoding variables as constants.
     used during setup.  Don't hard-code.
 
 --------------------------------------------------------------------------------
-### Part 2: Implement `nrf-driver.c:nrf_tx_send_noack`.
+### Part 1: Implement `nrf-driver.c:nrf_tx_send_noack`.
+
+<p align="center">
+  <img src="images/pi-huge-network.jpg" width="650" />
+</p>
+
+***tl;dr***:
+  1. Look at `tests/1-one-way-no-ack-4bytes.c`.
+  2. Implement `nrf_tx_send_noack`.
+  3. `make check` for the `tests/1-one-way-no-ack-4bytes.c` should pass.
+  4. NOTE: if there is enough interference (or just bad luck) 
+     packets can get lost and `make check` won't pass.  In this case
+     just run the test and make sure it does send and receive some 
+     packets (versus 0) before panic'ing.
 
 You'll implement sending without acknowledgements.  For a rough reference
 (for ack'd packets), look at Appendix A (page 75): "Enhanced ShockBurst
@@ -316,6 +346,10 @@ issues, it is probably from this mistake.
 --------------------------------------------------------------------------------
 ### Part 4: Implement `nrf-driver.c:nrf_tx_send_ack`.
 
+<p align="center">
+  <img src="images/pi-shockwave.jpg" width="450" />
+</p>
+
 You'll implement sending with acknowledgements.  It will look similar to 
 the no-ack version, except:
 
@@ -346,6 +380,11 @@ since the hardware uses that to receive acknowledgements.
 
 --------------------------------------------------------------------------------
 ### Part 5: write a test to send to your partner.
+
+***NOTE***:
+  - make sure you set the server and client address correctly!  (In
+    you code your partner should be the client, and you should be server.
+    In your partner's code, this should be reversed.)
 
 Write a test that will ping pong packets between your pi and your partner.
 Their RX address should be the TX address you send to and vice-versa.
