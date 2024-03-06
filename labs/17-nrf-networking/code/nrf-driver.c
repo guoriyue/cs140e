@@ -79,6 +79,9 @@ static inline void ce_hi(uint8_t ce) {
     todo("implement this\n");
 }
 
+// static inline void ce_hi(uint8_t ce) { gpio_write(ce, 1); }
+// static inline void ce_lo(uint8_t ce) { gpio_write(ce, 0); }
+
 // initialize the NRF: [extension: pass in a channel]
 nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     nrf_t *n = staff_nrf_init(c, rxaddr, acked_p);
@@ -206,6 +209,23 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
 static void nrf_rx_mode(nrf_t *n) {
     todo("go to RX with delay");
 
+    // // p 22: figure 4: document says to avoid the forbidden zone b/n states.
+    // //
+    
+    // // 1. write CE to go to <Standby-I>: so we an transition in a legal state
+    // ce_lo(n->c.ce_pin);
+    
+    // // 2. then switch the NRF_CONFIG registetr.
+    // nrf_put8(n, NRF_CONFIG, n->rx_config);
+
+    // // 3. write CE to go to RX
+    // ce_hi(n->c.ce_pin);
+    
+    // // 4. delay til device settles.
+    // delay_us(130);
+
+    // assert(nrf_is_rx(n));
+
     nrf_opt_assert(n, nrf_is_rx(n));
 }
 
@@ -223,6 +243,33 @@ static void nrf_rx_mode(nrf_t *n) {
 static void nrf_tx_mode(nrf_t *n) {
     // NOTE: tx fifo should not be empty.
     todo("go RX->StandbyI->StandbyII->TX");
+
+    nrf_debug("setting to tx\n");
+
+    // //  p22: from figure 4, there is no edge directly from <RX> to <TX>.
+    // //  thus, we first go to <Standby-I> (by setting CE=0) *then* to <TX>.
+    // //  I don't think there is a timing requirement?   
+    // //
+    // //  note: it might seem weird that we subsequently send by raising the
+    // //  ce pin hi then back lo after 10usec.  from p22: the key state change
+    // //  is that the FIFO is not empty.
+    // //
+    // //  1. write CE to go to a legal state.
+    // //  2. write the TX config.
+    // //  I don't think we have to wait?
+
+    // //
+    // // alternatively we could eliminate the 10usec requirement by going from:
+    // //       RX -> StandbyI (by setting CE=0) 
+    // //          -> StandbyII  (by setting RX=0 and CE=1)
+    // //          -> TX (by writing data into the FIFO)
+    // // see the state machine on p22.
+
+    // ce_lo(n->c.ce_pin);
+    // nrf_put8(n, NRF_CONFIG, n->tx_config);
+    // ce_hi(n->c.ce_pin);
+    // delay_us(10);
+    // delay_us(130);
 
     nrf_opt_assert(n, nrf_is_tx(n));
 }
@@ -253,6 +300,47 @@ int nrf_tx_send_ack(nrf_t *n, uint32_t txaddr,
     //    you can panic for today.  but dump out the 
     //    configuration: good chance its a bad configure.
     int res = staff_nrf_tx_send_ack(n, txaddr, msg, nbytes);
+
+
+    // int res = 0;
+
+    // // 1. set device to TX mode
+    // nrf_put8_chk(n, NRF_CONFIG, tx_config);
+
+    // // 2. set TX addr and pipe 0 for ack
+    // nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
+
+    // nrf_put8_chk(n, NRF_RX_PW_P0, nbytes);
+    // nrf_set_addr(n, NRF_RX_ADDR_P0, txaddr, nrf_default_addr_nbytes);
+
+    // // 3. write message to device
+    // nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
+
+    // // 4. pulse the CE pin to actually switch to TX mode
+    // gpio_set_off(n->config.ce_pin);
+    // delay_us(140);
+    // gpio_set_on(n->config.ce_pin);
+    // delay_us(140);
+
+    // // 5. wait until the TX fifo is empty
+    // while(!nrf_tx_fifo_empty(n))
+    //     ;
+    
+    // // 6. check/clear the TX interrupt
+    // if (nrf_has_tx_intr(n)) {
+    //     res = nbytes;
+    //     nrf_tx_intr_clr(n);
+    // } else if (nrf_has_max_rt_intr(n)) {
+    //     res = 0;
+    //     nrf_rt_intr_clr(n);
+    // }
+
+    // // 7. set device back to RX mode
+    // gpio_set_off(n->config.ce_pin);
+    // delay_us(140);
+    // nrf_put8_chk(n, NRF_CONFIG, rx_config);
+    // gpio_set_on(n->config.ce_pin);
+    // delay_us(140);
 
     // How to increment the total number of retransmissions.
     //  uint8_t cnt = nrf_get8(n, NRF_OBSERVE_TX);
@@ -291,6 +379,36 @@ int nrf_tx_send_noack(nrf_t *n, uint32_t txaddr,
     // NOTE: 
     //   - If nRF24L01+ is in standby-II mode, it goes to 
     //     standby-I mode immediately if CE is set low.
+
+    // // 1. set device to TX mode
+    // nrf_put8_chk(n, NRF_CONFIG, tx_config);
+
+    // // 2. set TX addr
+    // nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
+
+    // // 3. write message to device
+    // nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
+
+    // // 4. pulse the CE pin to actually switch to TX mode
+    // gpio_set_off(n->config.ce_pin);
+    // delay_us(140);
+    // gpio_set_on(n->config.ce_pin);
+    // delay_us(140);
+
+    // // 5. wait until the TX fifo is empty
+    // while(!nrf_tx_fifo_empty(n))
+    //     ;
+    
+    // // 6. clear the TX interrupt
+    // nrf_tx_intr_clr(n);
+
+    // // 7. set device back to RX mode
+    // gpio_set_off(n->config.ce_pin);
+    // delay_us(140);
+    // nrf_put8_chk(n, NRF_CONFIG, rx_config);
+    // gpio_set_on(n->config.ce_pin);
+    // delay_us(140);
+
     int res = staff_nrf_tx_send_noack(n, txaddr, msg, nbytes);
 
     // after done: tx interrupt better be cleared.
@@ -333,6 +451,23 @@ int nrf_get_pkts(nrf_t *n) {
     //       a packet arrives b/n (1) and (2)
     // } while (rx fifo is not empty)
     int res = staff_nrf_get_pkts(n);
+    // while(!nrf_rx_fifo_empty(n)) {
+
+    //     unsigned pipen = nrf_rx_get_pipeid(n);
+    //     if(pipen == NRF_PIPEID_EMPTY)
+    //         panic("impossible: empty pipeid: %b\n", pipen);
+        
+    //     uint8_t msg[NRF_PKT_MAX];
+
+    //     uint8_t status = nrf_getn(n, NRF_R_RX_PAYLOAD, msg, n->config.nbytes);
+    //     assert(pipeid_get(status) == pipen);
+
+    //     if(!cq_push_n(&n->recvq, msg, n->config.nbytes))
+    //         panic("not enough space left for message on pipe=%d\n", pipen);
+
+    //     nrf_rx_intr_clr(n);
+    //     res++;
+    // }
 
     nrf_opt_assert(n, nrf_get8(n, NRF_CONFIG) == rx_config);
     return res;

@@ -44,3 +44,55 @@ enum {
 };
 
 #endif
+
+
+
+
+// enum {
+//     nrf_default_nbytes              = 4,            // 4 byte packets.
+//     nrf_default_channel             = 113,          // allegedly semi-safe from interference
+//     // original: interference at barronne, interesting.
+//     // nrf_default_channel             = 61,          // allegedly semi-safe from interference
+//     nrf_default_data_rate           = nrf_2Mbps,    // lower data rate ==> longer distance.
+
+//     // other values cause loss in loop back: interesting.
+//     nrf_default_db                  = dBm_minus12,
+//     nrf_default_retran_attempts     = 2,            // 2 retran attempts
+//     nrf_default_retran_delay        = 1000,         // 500 usec retran delay
+//     // if we increase?  doesn't seem to matter.
+//     nrf_default_addr_nbytes         = 3,
+
+//     nrf_default_ce_pin              = 20,
+//     nrf_default_int_pin             = 21,
+//     nrf_default_spi_pin             = 1             // device 1.
+// };
+
+
+// enum {
+//     server_addr = 0xe1e1e1,
+//     client_addr = 0xe7e7e7,
+// };
+
+// enum {
+//     nrf_default_nbytes              = 4,            // 4 byte packets.
+
+//     // allegedly semi-safe from interference
+//     // RF is really sensitive.   maybe worth writing the code to find.
+//     // bounce around, send/recv and check.
+//     nrf_default_channel             = 113,          
+
+//     // lower data rate ==> longer distance.
+//     nrf_default_data_rate           = nrf_2Mbps,    
+
+//     // this is full power.
+//     nrf_default_db                  = dBm_0,
+
+//     // 6 retran attempts
+//     nrf_default_retran_attempts     = 6,            
+
+//     // 2000 usec retran delay
+//     nrf_default_retran_delay        = 2000,         
+
+//     // if we increase?  doesn't seem to matter; 4,5 also legal.
+//     nrf_default_addr_nbytes         = 3,
+// };
