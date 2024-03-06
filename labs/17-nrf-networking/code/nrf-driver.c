@@ -68,7 +68,8 @@ static inline void ce_lo(uint8_t ce) {
     if(ce != 6 && ce != 5)
         panic("expected 6 or 5, have: %d\n", ce);
     dev_barrier();
-    todo("implement this\n");
+    // todo("implement this\n");
+    gpio_write(ce, 0);
 }
 
 // seperate out so we can do some error checking.
@@ -76,20 +77,58 @@ static inline void ce_hi(uint8_t ce) {
     if(ce != 6 && ce != 5)
         panic("expected 6 or 5, have: %d\n", ce);
     dev_barrier();
-    todo("implement this\n");
+    // todo("implement this\n");
+    gpio_write(ce, 1);
 }
 
-// static inline void ce_hi(uint8_t ce) { gpio_write(ce, 1); }
-// static inline void ce_lo(uint8_t ce) { gpio_write(ce, 0); }
+// put the device in RX mode.
+static void nrf_rx_mode(nrf_t *n) {
+    // todo("go to RX with delay");
+
+    nrf_set_pwrup_on(n);
+    delay_ms(100);
+
+    nrf_put8_chk(n, NRF_CONFIG, rx_config);
+    ce_hi(n->config.ce_pin);
+    delay_us(140); // 10 + 130
+
+    assert(nrf_is_rx(n));
+
+    nrf_opt_assert(n, nrf_is_rx(n));
+}
+
+// go from RX from TX via the state diagram.
+// instead eliminate the 10usec requirement by going from:
+//       RX -> StandbyI (by setting CE=0) 
+//          -> TX (by writing data into the FIFO, CE=1 for 10usec)
+//          -> Standby-II (CE=1)
+//          -> Standby I (CE=0)
+// see the state machine on p22, and [p75]
+//
+// NOTE: If nRF24L01+ is in standby-II mode, it goes to standby-I mode
+// immediately if CE is set low. [p75]
+static void nrf_tx_mode(nrf_t *n) {
+    // NOTE: tx fifo should not be empty.
+    // todo("go RX->StandbyI->StandbyII->TX");
+
+    nrf_debug("setting to tx\n");
+
+    ce_lo(n->config.ce_pin);
+    nrf_put8_chk(n, NRF_CONFIG, tx_config);
+    ce_hi(n->config.ce_pin);
+    delay_us(140); // 10 + 130
+
+    nrf_opt_assert(n, nrf_is_tx(n));
+}
 
 // initialize the NRF: [extension: pass in a channel]
 nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
-    nrf_t *n = staff_nrf_init(c, rxaddr, acked_p);
+    // nrf_t *n = staff_nrf_init(c, rxaddr, acked_p);
 
     // start of initialization: go through and handle no-ack first,
     // then ack.  i'd do one test at a time.
 
-#if 0
+// #if 0
     nrf_t *n = kmalloc(sizeof *n);
     n->config = c;      // set initial config.
     nrf_stat_start(n);  // reset stas.
@@ -109,8 +148,11 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
 
     if(!acked_p) {
         // reg1: disable retran.
+        nrf_put8_chk(n, NRF_SETUP_RETR, 0);
         // reg2: enable pipe 1.
-
+        // nrf_put8_chk(n, NRF_EN_RXADDR, 0b10);
+        nrf_bit_set(n, NRF_EN_RXADDR, 1);
+        nrf_put8_chk(n, NRF_EN_AA, 0);
 
         assert(nrf_pipe_is_enabled(n, 1));
         assert(!nrf_pipe_is_acked(n, 1));
@@ -119,15 +161,21 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     } else {
         // reg=1: p57
         // both retran pipe(0) and pipe 1 have to be ENAA_P0 = 1 (p75)
+        nrf_put8_chk(n, NRF_EN_AA, 0b11);
 
         // reg=2: p 57, enable pipes --- always enable pipe 0 for retran.
+        // nrf_put8_chk(n, NRF_EN_RXADDR, 0b11);
+        nrf_bit_set(n, NRF_EN_RXADDR, 0);
+        nrf_bit_set(n, NRF_EN_RXADDR, 1);
 
         // set retrans attempt and delay
         //  - nrf_default_retran_attempts;
         //  - nrf_default_retran_delay [note you have to 
         //    convert to the right encoding]
-
+        uint8_t retran = nrf_default_retran_attempts;
+        retran = retran | (nrf_default_retran_delay << 4);
         // reg = 4: setup retran
+        nrf_put8_chk(n, NRF_SETUP_RETR, retran);
 
         // double check
         assert(nrf_pipe_is_enabled(n, 0));
@@ -137,16 +185,27 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     }
 
     // turn off the other pipes.
-
+    for(unsigned i = 2; i < 6; i++)
+        nrf_bit_set(n, NRF_EN_RXADDR, i);
+        // nrf_put8_chk(n, NRF_EN_RXADDR, 1<<i);
+    
     // reg=3 setup address size
+    nrf_put8_chk(n, NRF_SETUP_AW, nrf_default_addr_nbytes - 2);
 
     // clear the TX addr for determinism.
+    nrf_set_addr(n, NRF_TX_ADDR, 0, nrf_default_addr_nbytes);
+    // nrf_put8_chk(n, NRF_TX_ADDR, 0xE7E7E7E7E7);
+    
 
     // Set message size = 0 for unused pipes.  
     //  [NOTE: I think redundant, but just to be sure.]
-
+    nrf_put8_chk(n, NRF_RX_PW_P2, 0);
+    nrf_put8_chk(n, NRF_RX_PW_P3, 0);
+    nrf_put8_chk(n, NRF_RX_PW_P4, 0);
+    nrf_put8_chk(n, NRF_RX_PW_P5, 0);
 
     // reg=5: RF_CH: setup channel --- this is for all addresses.
+    nrf_put8_chk(n, NRF_RF_CH, nrf_default_channel);
 
 
     // reg=6: RF_SETUP: setup data rate and power.
@@ -155,6 +214,7 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     // use:
     //  - nrf_default_data_rate;
     //  - nrf_default_db;
+    nrf_put8_chk(n, NRF_RF_SETUP, nrf_default_data_rate | nrf_default_db);
 
     // reg=7: status.  p59
     // sanity check that it is empty and nothing else is set.
@@ -167,13 +227,19 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     // ideally we would do something where we use different 
     // addresses across reboots?   we get a bit of this benefit
     // by waiting the 100ms.
+    uint8_t status = nrf_get8(n, NRF_STATUS);
+    delay_ms(100);
+    if (status != 0b00001110) {
+        nrf_put8_chk(n, NRF_STATUS, 0b00001110);
+    }
 
 
     // we skip reg=0x8 (observation)
     // we skip reg=0x9 (RPD)
     // we skip reg=0xA (P0)
     // we skip reg=0x10 (TX_ADDR): used only when sending.
-
+    nrf_rx_flush(n);
+    nrf_tx_flush(n);
 
     // i think w/ the nic is off, this better be true.
     assert(nrf_tx_fifo_empty(n));
@@ -181,13 +247,25 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
 
 
     // make sure you delay long enough
-    todo("go from <PowerDown> to <Standby-I>");
-    todo("go from <Standby-I> to RX");
+    // todo("go from <PowerDown> to <Standby-I>");
+    // PWR_UP 1
+    nrf_rx_mode(n);
+    // ce_lo(c.ce_pin);
+    // nrf_put8_chk(n, NRF_CONFIG, rx_config);
+    // // todo("go from <Standby-I> to RX");
+    // // CE 1
+    // // gpio_write(c.ce_pin, 1);
+    // ce_hi(c.ce_pin);
+    // delay_ms(100);
 
-#endif
+// #endif
 
 
     // should be true after setup.
+    // rx_config: 0x7f
+    // nrf_get8(n, NRF_CONFIG): 0x2
+    // printk("rx_config: %x\n", rx_config);
+    // printk("nrf_get8(n, NRF_CONFIG): %x\n", nrf_get8(n, NRF_CONFIG));
     if(acked_p) {
         nrf_opt_assert(n, nrf_get8(n, NRF_CONFIG) == rx_config);
         nrf_opt_assert(n, nrf_pipe_is_enabled(n, 0));
@@ -204,76 +282,6 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     }
     return n;
 }
-
-// put the device in RX mode.
-static void nrf_rx_mode(nrf_t *n) {
-    todo("go to RX with delay");
-
-    // // p 22: figure 4: document says to avoid the forbidden zone b/n states.
-    // //
-    
-    // // 1. write CE to go to <Standby-I>: so we an transition in a legal state
-    // ce_lo(n->c.ce_pin);
-    
-    // // 2. then switch the NRF_CONFIG registetr.
-    // nrf_put8(n, NRF_CONFIG, n->rx_config);
-
-    // // 3. write CE to go to RX
-    // ce_hi(n->c.ce_pin);
-    
-    // // 4. delay til device settles.
-    // delay_us(130);
-
-    // assert(nrf_is_rx(n));
-
-    nrf_opt_assert(n, nrf_is_rx(n));
-}
-
-
-// go from RX from TX via the state diagram.
-// instead eliminate the 10usec requirement by going from:
-//       RX -> StandbyI (by setting CE=0) 
-//          -> TX (by writing data into the FIFO, CE=1 for 10usec)
-//          -> Standby-II (CE=1)
-//          -> Standby I (CE=0)
-// see the state machine on p22, and [p75]
-//
-// NOTE: If nRF24L01+ is in standby-II mode, it goes to standby-I mode
-// immediately if CE is set low. [p75]
-static void nrf_tx_mode(nrf_t *n) {
-    // NOTE: tx fifo should not be empty.
-    todo("go RX->StandbyI->StandbyII->TX");
-
-    nrf_debug("setting to tx\n");
-
-    // //  p22: from figure 4, there is no edge directly from <RX> to <TX>.
-    // //  thus, we first go to <Standby-I> (by setting CE=0) *then* to <TX>.
-    // //  I don't think there is a timing requirement?   
-    // //
-    // //  note: it might seem weird that we subsequently send by raising the
-    // //  ce pin hi then back lo after 10usec.  from p22: the key state change
-    // //  is that the FIFO is not empty.
-    // //
-    // //  1. write CE to go to a legal state.
-    // //  2. write the TX config.
-    // //  I don't think we have to wait?
-
-    // //
-    // // alternatively we could eliminate the 10usec requirement by going from:
-    // //       RX -> StandbyI (by setting CE=0) 
-    // //          -> StandbyII  (by setting RX=0 and CE=1)
-    // //          -> TX (by writing data into the FIFO)
-    // // see the state machine on p22.
-
-    // ce_lo(n->c.ce_pin);
-    // nrf_put8(n, NRF_CONFIG, n->tx_config);
-    // ce_hi(n->c.ce_pin);
-    // delay_us(10);
-    // delay_us(130);
-
-    nrf_opt_assert(n, nrf_is_tx(n));
-}
-
 
 int nrf_tx_send_ack(nrf_t *n, uint32_t txaddr, 
     const void *msg, unsigned nbytes) {
@@ -301,11 +309,8 @@ int nrf_tx_send_ack(nrf_t *n, uint32_t txaddr,
     //    configuration: good chance its a bad configure.
     int res = staff_nrf_tx_send_ack(n, txaddr, msg, nbytes);
 
-
     // int res = 0;
-
-    // // 1. set device to TX mode
-    // nrf_put8_chk(n, NRF_CONFIG, tx_config);
+    // nrf_tx_mode(n);
 
     // // 2. set TX addr and pipe 0 for ack
     // nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);

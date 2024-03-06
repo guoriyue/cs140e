@@ -9,7 +9,7 @@ COMMON_SRC += full-except-asm.S
 COMMON_SRC += equiv-threads.c
 
 # you'll be replacing these.
-STAFF_OBJS := staff-full-except-asm.o  
+# STAFF_OBJS := staff-full-except-asm.o  
 # STAFF_OBJS += staff-switchto-asm.o
 
 # define this if you need to give the device for your pi
