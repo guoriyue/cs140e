@@ -86,7 +86,7 @@ static void nrf_rx_mode(nrf_t *n) {
     // todo("go to RX with delay");    
 
     ce_lo(n->config.ce_pin);
-    delay_us(10); // 10
+    delay_us(10);
     nrf_put8_chk(n, NRF_CONFIG, rx_config);
     ce_hi(n->config.ce_pin);
     delay_us(10); // 10 + 130
@@ -143,7 +143,6 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     // put in PWR_DOWN so can configure.
     nrf_put8_chk(n, NRF_CONFIG, 0);
     assert(!nrf_is_pwrup(n));
-
     // disable all eipes.
     nrf_put8_chk(n, NRF_EN_RXADDR, 0);
 
@@ -151,8 +150,8 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
         // reg1: disable retran.
         nrf_put8_chk(n, NRF_SETUP_RETR, 0);
         // reg2: enable pipe 1.
-        // nrf_put8_chk(n, NRF_EN_RXADDR, 0b10);
-        nrf_bit_set(n, NRF_EN_RXADDR, 1);
+        nrf_put8_chk(n, NRF_EN_RXADDR, 0b10);
+        // nrf_bit_set(n, NRF_EN_RXADDR, 1);
         nrf_put8_chk(n, NRF_EN_AA, 0);
 
         assert(nrf_pipe_is_enabled(n, 1));
@@ -165,9 +164,9 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
         nrf_put8_chk(n, NRF_EN_AA, 0b11);
 
         // reg=2: p 57, enable pipes --- always enable pipe 0 for retran.
-        // nrf_put8_chk(n, NRF_EN_RXADDR, 0b11);
-        nrf_bit_set(n, NRF_EN_RXADDR, 0);
-        nrf_bit_set(n, NRF_EN_RXADDR, 1);
+        nrf_put8_chk(n, NRF_EN_RXADDR, 0b11);
+        // nrf_bit_set(n, NRF_EN_RXADDR, 0);
+        // nrf_bit_set(n, NRF_EN_RXADDR, 1);
 
         // set retrans attempt and delay
         //  - nrf_default_retran_attempts;
@@ -185,10 +184,17 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
         assert(nrf_pipe_is_acked(n, 0));
     }
 
+    nrf_put8_chk(n, NRF_RX_PW_P0, 0x0);
+    nrf_set_addr(n, NRF_RX_ADDR_P0, 0x0, nrf_default_addr_nbytes);
+
+    nrf_put8_chk(n, NRF_RX_PW_P1, c.nbytes);
+    nrf_set_addr(n, NRF_RX_ADDR_P1, rxaddr, nrf_default_addr_nbytes);
+
+
     // turn off the other pipes.
-    for(unsigned i = 2; i < 6; i++)
-        nrf_bit_set(n, NRF_EN_RXADDR, i);
-        // nrf_put8_chk(n, NRF_EN_RXADDR, 1<<i);
+    // for(unsigned i = 2; i < 6; i++)
+    //     nrf_bit_set(n, NRF_EN_RXADDR, i);
+    //     // nrf_put8_chk(n, NRF_EN_RXADDR, 1<<i);
     
     // reg=3 setup address size
     nrf_put8_chk(n, NRF_SETUP_AW, nrf_default_addr_nbytes - 2);
@@ -229,9 +235,10 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     // addresses across reboots?   we get a bit of this benefit
     // by waiting the 100ms.
     uint8_t status = nrf_get8(n, NRF_STATUS);
-    delay_ms(100);
+    // delay_ms(100);
     if (status != 0b00001110) {
-        nrf_put8_chk(n, NRF_STATUS, 0b00001110);
+        nrf_put8(n, NRF_STATUS, 0b00001110);
+        // panic("status incorrect\n");
     }
 
 
@@ -246,21 +253,18 @@ nrf_t *nrf_init(nrf_conf_t c, uint32_t rxaddr, unsigned acked_p) {
     assert(nrf_tx_fifo_empty(n));
     assert(nrf_rx_fifo_empty(n));
 
-    nrf_set_pwrup_on(n);
-    delay_ms(100);
-
     // make sure you delay long enough
     // todo("go from <PowerDown> to <Standby-I>");
     // PWR_UP 1
-    nrf_rx_mode(n);
-    // ce_lo(c.ce_pin);
-    // nrf_put8_chk(n, NRF_CONFIG, rx_config);
-    // // todo("go from <Standby-I> to RX");
-    // // CE 1
-    // // gpio_write(c.ce_pin, 1);
-    // ce_hi(c.ce_pin);
-    // delay_ms(100);
+    nrf_set_pwrup_on(n);
+    delay_ms(2); // Tpd2stby 1.5
 
+    // todo("go from <Standby-I> to RX");
+    // CE 1
+    // nrf_rx_mode(n);
+    nrf_put8_chk(n, NRF_CONFIG, rx_config);
+    gpio_set_on(c.ce_pin);
+    delay_us(140);
 // #endif
 
 
@@ -310,24 +314,25 @@ int nrf_tx_send_ack(nrf_t *n, uint32_t txaddr,
     //  - if you get more than max_rt_interrupts
     //    you can panic for today.  but dump out the 
     //    configuration: good chance its a bad configure.
-    int res = staff_nrf_tx_send_ack(n, txaddr, msg, nbytes);
+    // int res = staff_nrf_tx_send_ack(n, txaddr, msg, nbytes);
 
-    // int res = 0;
-    // nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
-    // nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
-    // nrf_tx_mode(n);
-    // while(!nrf_tx_fifo_empty(n))
-    //     ;
-
-    // if (nrf_has_tx_intr(n)) {
-    //     res = nbytes;
-    //     nrf_tx_intr_clr(n);
-    // }
-    // if (nrf_has_max_rt_intr(n)) {
-    //     panic("max retransmits no ack\n");
-    // }
-    // nrf_rx_mode(n);
-    // res = nbytes;
+    int res = nbytes;
+    nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
+    nrf_set_addr(n, NRF_RX_ADDR_P0, txaddr, nrf_default_addr_nbytes);
+    nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
+    nrf_tx_mode(n);
+    
+    while(!nrf_tx_fifo_empty(n))
+        ;
+    
+    if (nrf_has_tx_intr(n)) {
+        res = nbytes;
+        nrf_tx_intr_clr(n);
+    }
+    if (nrf_has_max_rt_intr(n)) {
+        panic("max retransmits no ack\n");
+    }
+    nrf_rx_mode(n);
 
     // when done: tx interrupt better be cleared.
     nrf_opt_assert(n, !nrf_has_tx_intr(n));
@@ -351,28 +356,28 @@ int nrf_tx_send_noack(nrf_t *n, uint32_t txaddr,
     while(nrf_get_pkts(n))
         ;
 
-    // int res = nbytes;
-    // nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
-    // // TODO: you would implement the send packet code.
-    // // see page 75.
-    // // 1. put packet on TX fifo.
-    // nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
-    // // 2. put NRF in TX mode, 
-    // nrf_tx_mode(n);
-    // // 3. wait for TX interrupt.
-    // while(!nrf_tx_fifo_empty(n))
-    //     ;
-    // // 4. assert that tx fifo is empty.
-    // assert(nrf_tx_fifo_empty(n));
-    // // 5. Clear the tx interrupt.
-    // nrf_tx_intr_clr(n);
-    // // 6. put back in rx mode.  (via standbyII->standbyI)
-    // nrf_rx_mode(n);
-    // // NOTE: 
-    // //   - If nRF24L01+ is in standby-II mode, it goes to 
-    // //     standby-I mode immediately if CE is set low.
+    int res = nbytes;
+    nrf_set_addr(n, NRF_TX_ADDR, txaddr, nrf_default_addr_nbytes);
+    // TODO: you would implement the send packet code.
+    // see page 75.
+    // 1. put packet on TX fifo.
+    nrf_putn(n, NRF_W_TX_PAYLOAD, msg, nbytes);
+    // 2. put NRF in TX mode, 
+    nrf_tx_mode(n);
+    // 3. wait for TX interrupt.
+    while(!nrf_tx_fifo_empty(n))
+        ;
+    // 4. assert that tx fifo is empty.
+    assert(nrf_tx_fifo_empty(n));
+    // 5. Clear the tx interrupt.
+    nrf_tx_intr_clr(n);
+    // 6. put back in rx mode.  (via standbyII->standbyI)
+    nrf_rx_mode(n);
+    // NOTE: 
+    //   - If nRF24L01+ is in standby-II mode, it goes to 
+    //     standby-I mode immediately if CE is set low.
 
-    int res = staff_nrf_tx_send_noack(n, txaddr, msg, nbytes);
+    // int res = staff_nrf_tx_send_noack(n, txaddr, msg, nbytes);
 
     // after done: tx interrupt better be cleared.
     nrf_opt_assert(n, !nrf_has_tx_intr(n));
@@ -413,21 +418,21 @@ int nrf_get_pkts(nrf_t *n) {
     //       if so, repeat from (1) --- we need to do this now in case
     //       a packet arrives b/n (1) and (2)
     // } while (rx fifo is not empty)
-    int res = staff_nrf_get_pkts(n);
-    // int res = 0;
-    // unsigned pipen = nrf_rx_get_pipeid(n);
-    // if(pipen == NRF_PIPEID_EMPTY)
-    //     panic("pipeid is empty\n");
-    // do {
-    //     uint8_t msg[32];
-    //     uint8_t status = nrf_getn(n, NRF_R_RX_PAYLOAD, msg, n->config.nbytes);
+    // int res = staff_nrf_get_pkts(n);
+    int res = 0;
+    unsigned pipen = nrf_rx_get_pipeid(n);
+    if(pipen == NRF_PIPEID_EMPTY)
+        panic("pipeid is empty\n");
+    do {
+        uint8_t msg[32];
+        uint8_t status = nrf_getn(n, NRF_R_RX_PAYLOAD, msg, n->config.nbytes);
 
-    //     if(!cq_push_n(&n->recvq, msg, n->config.nbytes))
-    //         panic("not enough space in receive queue\n");
+        if(!cq_push_n(&n->recvq, msg, n->config.nbytes))
+            panic("not enough space in receive queue\n");
 
-    //     nrf_rx_intr_clr(n);
-    //     res++;
-    // } while(!nrf_rx_fifo_empty(n));
+        nrf_rx_intr_clr(n);
+        res++;
+    } while(!nrf_rx_fifo_empty(n));
 
     nrf_opt_assert(n, nrf_get8(n, NRF_CONFIG) == rx_config);
     return res;

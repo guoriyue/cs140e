@@ -15,8 +15,10 @@
 //  0xd3d3d3,
 
 enum {
-    server_addr = 0xd5d5d5,
-    client_addr = 0xe5e5e5,
+    // server_addr = 0xd5d5d5,
+    // client_addr = 0xe5e5e5,
+    server_addr = 0xe3e3e3,
+    client_addr = 0xe1e1e1,
 };
 
 enum {
@@ -34,7 +36,7 @@ enum {
     nrf_default_db                  = dBm_0,
 
     // 6 retran attempts
-    nrf_default_retran_attempts     = 6,            
+    nrf_default_retran_attempts     = 10,            
 
     // 2000 usec retran delay
     nrf_default_retran_delay        = 2000,         
