@@ -4,7 +4,61 @@
   <img src="images/pi-vm-lab2.jpg" width="700" />
 </p>
 
-Last lab we did the page table, the main noun of the VM universe.  This
+-----------------------------------------------------------------------
+***Clarifications***:
+  - The comment for `cp15_domain_ctrl_wr`
+    says you need to "flush_btb, dsb, prefetch flush" but I think you
+    only need the prefetch flush.
+
+  - You will also have to write `cp15_ctrl_reg1_rd()` which reads the
+    control reg 1 and returns it as a `struct control_reg1` 
+    (defined in `armv6-cp15.h`) which is exactly 32-bits wide.  
+
+            struct control_reg1 c1 = cp15_ctrl_reg1_rd();
+
+    It may be easiest to write the routine in the assembly file so you
+    don't have to mess with casting. 
+
+  - Note: the test `4-test-vm-cache-mgmt.c` assumes your enable/disable
+    does an icache invalidation.  As the lab discusses below if you 
+    do not want to do this, and have a good argument for why it is ok
+    to elide, you can change the test so it doesn't check this (see
+    the `mmu_enable` part of the lab below.
+
+  - The code for `mmu_init` should be something like:
+
+        void mmu_init(void) {
+            mmu_reset();
+
+            struct control_reg1 c1 = cp15_ctrl_reg1_rd();
+            c1.XP_pt = 1;
+            cp15_ctrl_reg1_wr(c1);
+
+            // make sure write succeeded.
+            c1 = cp15_ctrl_reg1_rd();
+            assert(c1.XP_pt);
+            assert(!c1.MMU_enabled);
+        }
+
+
+-----------------------------------------------------------------------
+#### tl;dr
+Today you will:
+
+  - replace `staff-mmu-asm.o` by writing your own versions in `your-mmu-asm.S`
+  - have a thorough set of arguments for why your versions are correct
+    (page numbers etc).
+  - Checking that the old tests work.
+  - Checking that the new test in `code/tests/4-test-vm-cache-mgmt.c` 
+    works.
+
+    NOTE: you will have to make sure that your `vm_map_sec` calls
+    `staff_mmu_sync_pte_mods()` after modifying the page table if the
+    MMU is enabled.
+
+#### Lab intro
+
+Last VM lab we did the page table, the main noun of the VM universe.  This
 lab we do the main gerunds needed to hook it up to the hardware: 
    - setting up domains.
    - setting up the page table register and ASID.
@@ -15,8 +69,8 @@ Today we'll write the hardest code of the quarter, but also do so in
 a way where you are surprised if it is broken.
 
 You'll write assembly helper routines implement these (put them in
-`13-vm-page-table/code/your-mmu-asm.S`) and then at the end remove our
-`staff-mmu-asm.o` from the makefiles in labs 12 and 13.  Mechanically,
+`16-vm-page-table/code/your-mmu-asm.S`) and then at the end remove our
+`staff-mmu-asm.o` from the Makefiles in lab 16 and 15 (pinned).  Mechanically,
 you will go through, one-at-a-time and replace every function prefixed
 with `staff_` to be your own code.  The code is setup so that you can
 knock these off one at a time, making sure that things work after each
@@ -38,7 +92,7 @@ Make sure you've read, re-read, re-re-read:
   - [MEMORY-ORDER-cheatsheet.md](MEMORY-ORDER-cheatsheet.md) is a 
     sprawling summary of the above.
   - [DEUX-MEM-ORDER.md](DEUX-MEM-ORDER.md) is a distillation I wrote
-    from scratch today to make sure I understood everything.  I think 
+    from scratch last year to make sure I understood everything.  I think 
     it's a bit simpler.
   - The BTB/BTAC is described in 5-1 --- 5-6 of the arm1176 pdf.
 
@@ -51,8 +105,6 @@ implement, which will be in `mmu-asm.S`:
     void mmu_disable_set_asm(cp15_ctrl_reg1_t c);
     void mmu_enable_set_asm(cp15_ctrl_reg1_t c);
     void cp15_set_procid_ttbr0(uint32_t proc_and_asid, fld_t *pt);
-    // note: see the errata for this --- we didn't put this in
-    // a part below.
     void mmu_sync_pte_mods(void);
 
   - `armv6-coprocessor-asm.h` --- many useful assembly 
@@ -109,15 +161,16 @@ but it has to be the right code.
 
 You will:
 
-  1. Replace all of our code from labs 12 and 13 lab and show that
-     the previous tests run.  (Note: our "tests" are incredibly weak so
+  1. Replace all our assembly code from labs 12 and 13 lab and show that
+     the previous tests run. Also upload your `your-vm-asm.S` to Gradescope and
+     make sure you pass the tests.  (Note: our "tests" are incredibly weak so
      this isn't a high bar; apologies.  Next Tuesday will have a more
      ruthless approach)
 
-  2. ***Have detailed comments in your `.S` stating why exactly you did
+  3. ***Have detailed comments in your `.S` stating why exactly you did
      what you did with page numbers.***  This is not optional.
 
-  3. Check-off should be 5-8 people at once where anyone can answer
+  4. Check-off should be 5-8 people at once where anyone can answer
      questions: "why did you do this?"
 
 Extensions:
@@ -185,27 +238,42 @@ ARMv6 manual (`docs/armv6.b2-memory.annot.pdf`).  Useful pages:
   - B2-24: must flush after a CP15.
 
 ----------------------------------------------------------------------
+## Part 0: The new test.
+
+There is now a new test:
+  - `code/tests/4-test-vm-cache-mgmt.c`.  You should look through
+    it to see what its doing.
+  - You should make sure it works out of the box.  
+  - You may want to enable all the staff code so you start from a 
+    known working (hopefully) state.
+
+  - NOTE: if it fails, make sure that your `vm_map_sec` calls
+    `staff_mmu_sync_pte_mods()` after modifying the page table if the
+    MMU is enabled or the test will fail.
+
+The test uses the arm1176 performance counters to do some simple 
+checks that your invalidation and caching code works correctly.
+The header files used:
+
+  - `armv6-pmu.h` defines the different performance counter
+    routines.  See 3-134 in the arm1176.pdf document for 
+    more discussion.  The big picture is that we can enable
+    two of many counters at a time (e.g., dcache misses.
+    icache misses, write back count etc) and use them
+    to check different properties.  Today we mainly
+    use them to check that key VM operations flushed caches by 
+    counting cache misses.
+
+  - `cache-support.h`: enable different caches on the arm by setting
+    the right bits in the cp15 register.
+
+----------------------------------------------------------------------
 ## Part 1: `domain_access_ctrl_set()` 
 
 Most of you already have this, but in case not:
   - Implement `domain_access_ctrl_set()` 
   - Make sure you obey any requirements for coherence stated in Chapter B2,
     specifically B2-24 (2.7.6).  Make sure the code still works!
-  - Change `staff_domain_access_ctrl_set` to call it.
-
-Compiling:
-  - You'll have to modify your `13-vm-page-table/code/Makefile` so that
-    it starts compiling your assembly.  (`COMMON_SRC += your-vm-asm.S`).
-  - You'll have to modify your `12-pinned-vm/code/Makefile` to
-    start using your assembly as well.  There is now a `Makefile.lab14`
-    that gives an example.
-  - It's possible because of naming you'll get a duplicate warning
-    about this one routine.  You can either change the name, or 
-    make it into a weak symbol.  For example:
-
-        int __attribute__((weak)) domain_access_ctrl_set(uint32_t d) {
-            ...
-        }
 
 Useful pages:
   - B4-10: what the bit values mean for the `domain` field.
@@ -243,8 +311,7 @@ Useful intuition:
 </td></tr></table>
 
 ----------------------------------------------------------------------
-----------------------------------------------------------------------
-## Part 2: Implement `mmu_reset`
+## Part 2: Implement `mmu_reset()`
 
 This routine gets called after booting up to set all caches to a clean
 state by invalidating them.  The MMU is off and should remain off.
@@ -266,9 +333,25 @@ Now you can write the code to turn the MMU on/off:
   - `mmu_enable_set_asm`  (called by `mmu_enable` in `mmu.c`).
   - `mmu_disable_set_asm` (called by `mmu_disable` in `mmu.c`).
 
+Note:
+  - We assume the kernel has already called `mmu_reset` to invalidate
+    hardware state (TLB and caches) to they don't contain trash.  Thus
+    enable does not have to do such initialization.
+
 The high-level sequence is given on page 6-9 of the `arm1176.pdf` document
-(screen shot below).  You will also have to flush:
-   - all caches (D/I cache, the I/D TLBs)
+(screen shot below).  B4-6 (`docs/armv6.annot.pdf`) has additional detail
+for disable if that is helpful.
+
+   - On enable: Don't invalidate the TLBs or pinned-vm may not work.
+   - The data cache is not accessible when the MMU is off.
+     Thus, before disabling the MMU you'll need to clean the data cache
+     or you'll lose dirty entries.
+   - It doesn't *seem* you have to invalidate the icache, but the 
+     test assumes you did.  If you don't want to, and have an argument
+     for why not, you are welcome to remove that part of the test
+     (it checks for icache misses after enable/disable).
+
+Make sure you're correctly using:
    - PrefetchBuffer.
    - BTB
    - and wait for everything correctly.
@@ -301,8 +384,13 @@ are correct.
 </td></tr></table>
 
 ----------------------------------------------------------------------
+## Part 4: Implement `mmu_sync_pte_mods`
+
+You can follow the recipe on B2-23 for modifying page table entries.
+For today just be conservative and invalidate the icache too.
+
 ----------------------------------------------------------------------
-## Part 4: Implement `cp15_set_procid_ttbr0`
+## Part 5: Implement `cp15_set_procid_ttbr0`
 
 <p align="center">
   <img src="images/robots-inspecting.png" width="450" />
