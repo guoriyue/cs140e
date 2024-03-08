@@ -37,30 +37,61 @@ MK_FN(get_cache_type)
 // void reset(void)
 // clear the dcache, icache, tlbs
 MK_FN(mmu_reset)
-    b staff_mmu_reset
-
-    asm_not_implemented()
+    @ asm_not_implemented()
+    @ Invalidate all caches (ITLB, DTLB, data cache, instruction cache). 
+    @ Do not clean the data cache since it will potentially write garbage back to memory)
+    INV_TLB(r0)
+    INV_DCACHE(r0)
+    INV_ICACHE(r0)
+    DSB(r0)
+    @ make sure visible
+    PREFETCH_FLUSH(r0)
     bx lr
 
 // void cp15_domain_ctrl_wr(uint32_t dom_reg);
 //  need to do cp15 sync: flush_btb, dsb, prefetch flush
 MK_FN(cp15_domain_ctrl_wr)
-    b staff_cp15_domain_ctrl_wr
-
-    asm_not_implemented()
+    @ b staff_cp15_domain_ctrl_wr
+    DOMAIN_CTRL_WR(r0)
+    @ mov r1, #0
+    @ flush after change to cp15 reg
+    PREFETCH_FLUSH(r0)
+    @ asm_not_implemented()
     bx lr
 
 // void cp15_set_procid_ttbr0(uint32_t proc_and_asid, fld_t *pt);
 // sequence from b2-25
 MK_FN(cp15_set_procid_ttbr0)
     b staff_cp15_set_procid_ttbr0
+    @ Change ASID to 0
+    @ unused ASID value of 0
+    mov r2, #0
+    DSB(r2)
+    ASID_SET(r2)
+    PREFETCH_FLUSH(r2)
 
-    asm_not_implemented()
+    @ Change Translation Table Base Register
+    TTBR0_SET(r1)
+    PREFETCH_FLUSH(r2)
+    @ TTBR1_SET(r2)
+    @ PREFETCH_FLUSH(r2)
+    TTBR_BASE_CTRL_WR(r2)
+    PREFETCH_FLUSH(r2)
+
+    @ Change ASID to new value
+    DSB(r2)
+    ASID_SET(r0)
+    PREFETCH_FLUSH(r2)
+
+    @ flush BTB since TTBR changed
+    FLUSH_BTB(r2)
+    PREFETCH_FLUSH(r2)
+    @ asm_not_implemented()
     bx lr
 
 // void mmu_disable_set_asm(cp15_ctrl_reg1_t c);
 MK_FN(mmu_disable_set_asm)
-    b staff_mmu_disable_set_asm
+    @ b staff_mmu_disable_set_asm
 
     @ note: this piece of code is mapped into the sample place in both
     @ MMU-enabled and MMU-disabled so BTB and Prefetch entries work identically
@@ -70,19 +101,62 @@ MK_FN(mmu_disable_set_asm)
     @ flush, but instructions could get fetched before we could disable,
     @ defeating the purpose.
 
-    asm_not_implemented()
+    @ asm_not_implemented()
+    mov r1, #0
+    CLEAN_INV_DCACHE(r1)
+    DSB(r1)
+    PREFETCH_FLUSH(r1)
+    INV_ICACHE(r1)
+    DSB(r1)
+    PREFETCH_FLUSH(r1)
+    CONTROL_REG1_WR(r0)
+    PREFETCH_FLUSH(r0)
+
+    FLUSH_BTB(r1)
+    PREFETCH_FLUSH(r1)
+    bx lr
     bx lr
 
 // void mmu_enable_set_asm(cp15_ctrl_reg1_t c);
 MK_FN(mmu_enable_set_asm)
-    b staff_mmu_enable_set_asm
+    @ b staff_mmu_enable_set_asm
+    @ CONTROL_REG1_WR(r0)
+    @ PREFETCH_FLUSH(r0)
+    @ INV_ICACHE(r0)
+    @ DSB(r0)
+    @ FLUSH_BTB(r0)
+    @ PREFETCH_FLUSH(r0)
 
-    asm_not_implemented()
+    @ asm_not_implemented()
+    @ bx lr
+    
+    mov r1, #0
+    INV_ICACHE(r1)
+    DSB(r1)
+    PREFETCH_FLUSH(r1)
+
+    @ turn MMU on
+    CONTROL_REG1_WR(r0)
+    PREFETCH_FLUSH(r0)
+
+    FLUSH_BTB(r0)
+    PREFETCH_FLUSH(r0)
+
     bx lr
 
 MK_FN(mmu_sync_pte_mods)
-    b staff_mmu_sync_pte_mods
+    @ b staff_mmu_sync_pte_mods
+    mov r0, #0
+    INV_TLB(r0)
+    DSB(r0)
+    PREFETCH_FLUSH(r0)
 
-    asm_not_implemented()
+    @ clean data cache
+    CLEAN_INV_DCACHE(r0)
+    DSB(r0)
+    PREFETCH_FLUSH(r0)
+
+    @ change BTB since PTE changed
+    FLUSH_BTB(r0)
+    PREFETCH_FLUSH(r0)
     bx lr
-
