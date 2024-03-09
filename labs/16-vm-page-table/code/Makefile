@@ -7,7 +7,10 @@ BOOTLOADER = my-install
 # PROGS += tests/test-except.c
 # PROGS += tests/part3.c
 
-PROGS = $(wildcard tests-2.0/[0-7]-test*.c)
+# PROGS = $(wildcard tests-2.0/[0-7]-test*.c)
+
+# PROGS = $(wildcard tests/4-test*.c)
+PROGS = $(wildcard tests/[0-7]-test*.c)
 
 O = $(CS140E_2024_PATH)/libpi
 STAFF_OBJS += $(O)/staff-objs/staff-full-except.o
@@ -25,9 +28,9 @@ COMMON_SRC += mmu.c
 # COMMON_SRC += pinned-vm.c
 
 # make sure can drop in staff.
-STAFF_OBJS += staff-mmu-asm.o  
-STAFF_OBJS += staff-mmu.o  
-STAFF_OBJS += staff-pt-vm.o  
+# STAFF_OBJS += staff-mmu-asm.o  
+# STAFF_OBJS += staff-mmu.o  
+# STAFF_OBJS += staff-pt-vm.o  
 # STAFF_OBJS += staff-pinned-vm.o
 # STAFF_OBJS += staff-mmu-except.o
 #COMMON_SRC += staff-mmu-asm.S 

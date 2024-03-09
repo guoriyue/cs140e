@@ -75,6 +75,7 @@ void vm_mmu_init(uint32_t domain_reg) {
 vm_pte_t *
 vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr) 
 {
+    // return staff_vm_map_sec(pt,va,pa,attr);
     assert(aligned(va, OneMB));
     assert(aligned(pa, OneMB));
 
@@ -146,7 +147,7 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     // } fld_t;
     
     // return staff_vm_map_sec(pt,va,pa,attr);
-    // pte = staff_vm_map_sec(pt,va,pa,attr);
+    // vm_pte_t *ptes = staff_vm_map_sec(pt,va,pa,attr);
 
     // lockdown_index_set(index);
     // uint32_t va_ent = va | (attr.asid) | (attr.G << 9);
@@ -177,25 +178,33 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
     uint32_t translation_base = (uint32_t)pt;
     // printk("translation base: %x\n", translation_base);
     uint32_t first_level_table_idx = va >> 20;
-    uint32_t first_level_descriptor_addr = translation_base + first_level_table_idx * 4 + 0b00;
+    // uint32_t first_level_descriptor_addr = translation_base + (first_level_table_idx << 2) + 0b00;
+
     pt[first_level_table_idx].tag = 0b10;
-    pt[first_level_table_idx].C = 0;
-    pt[first_level_table_idx].B = 0;
+    pt[first_level_table_idx].C = (attr.mem_attr >> 1) & 0b1;
+    pt[first_level_table_idx].B = attr.mem_attr & 0b1;
 
     pt[first_level_table_idx].XN = 0;
+
+
+
     pt[first_level_table_idx].domain = attr.dom;
     pt[first_level_table_idx].IMP = 0;
 
     // // mem_attr_t 5 bits
     // mem_perm_t 3 bits
     pt[first_level_table_idx].AP = attr.AP_perm & 0b11;
-    pt[first_level_table_idx].TEX = 0b1;
+    pt[first_level_table_idx].TEX = attr.mem_attr >> 2;
+    // pt[first_level_table_idx].TEX = 0b000;
     pt[first_level_table_idx].APX = attr.AP_perm >> 2;
 
     // S is X
+    pt[first_level_table_idx].S = 0;
     pt[first_level_table_idx].nG = ~attr.G;
     pt[first_level_table_idx].super = 0;
     // _sbz1
+    // _sbz1
+    pt[first_level_table_idx]._sbz1 = 0;
     pt[first_level_table_idx].sec_base_addr = pa >> 20;
 
     vm_pte_t *pte = &pt[first_level_table_idx];
@@ -245,7 +254,9 @@ vm_map_sec(vm_pt_t *pt, uint32_t va, uint32_t pa, pin_t attr)
 
     // uint32_t va_entry = pa | attr.AP_perm | (attr.mem_attr << 2) | (attr.G << 17) | (attr.dom << 5) | (1 << 1);
     // pte = &pt[index];
-
+    // printk("before staff staff: ================================================ \n");
+    // vm_pte_print(pt,ptes);
+    // printk("my my m: ================================================ \n");
     if(verbose_p)
         vm_pte_print(pt,pte);
     assert(pte);
@@ -327,6 +338,7 @@ static inline pin_t attr_mk(pr_ent_t *e) {
 // you setup the page table and asid. use  
 // kern_asid, and kern_pid.
 vm_pt_t *vm_map_kernel(procmap_t *p, int enable_p) {
+    // return staff_vm_map_kernel(p, enable_p);
     // the asid and pid we start with.  
     //    shouldn't matter since kernel is global.
     enum { kern_asid = 1, kern_pid = 0x140e };
