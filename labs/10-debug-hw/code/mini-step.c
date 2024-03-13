@@ -59,7 +59,7 @@ static inline void mismatch_on(void) {
 static inline void mismatch_off(void) {
     assert(single_step_on_p);
     single_step_on_p = 0;
-
+'/;'
     // RMW bcr0 to disable breakpoint, 
     // make sure you do a prefetch_flush!
     // todo("turn mismatch off, but don't modify anything else");

@@ -114,7 +114,7 @@ static uint32_t cluster_to_lba(fat32_fs_t *f, uint32_t cluster_num) {
   unsigned cluster_begin_lba = f->cluster_begin_lba;
   unsigned sectors_per_cluster = f->sectors_per_cluster;
   unsigned lba = cluster_begin_lba + (cluster_num - 2) * sectors_per_cluster;
-  if (trace_p) trace("cluster %d to lba: %d\n", cluster_num, lba);
+  // if (trace_p) trace("cluster %d to lba: %d\n", cluster_num, lba);
   return lba;
 }
 
@@ -270,7 +270,7 @@ pi_directory_t fat32_readdir(fat32_fs_t *fs, pi_dirent_t *dirent) {
     if (dirents[i].attr == 0b1000) { // Bit 3: volume label. 
       continue;
     }
-    dirents_p[i] = dirent_convert(&dirents[i]);
+    dirents_p[valid_n_dirents] = dirent_convert(&dirents[i]);
     valid_n_dirents++;
   }
 
@@ -286,29 +286,48 @@ pi_directory_t fat32_readdir(fat32_fs_t *fs, pi_dirent_t *dirent) {
   };
 }
 
-static int find_dirent_with_name(fat32_dirent_t *dirents, int n, char *filename) {
-  // TODO: iterate through the dirents, looking for a file which matches the
+int find_dirent_with_name(fat32_dirent_t *dirents, int n, char *filename) {
+  // Iterate through the dirents, looking for a file which matches the
   // name; use `fat32_dirent_name` to convert the internal name format to a
   // normal string.
-  unimplemented();
+  for (int i = 0; i < n; i++) {
+    char name[12];
+    fat32_dirent_name(dirents+i, name);
+    if (!strcmp(name, filename)) return i;
+  }
   return -1;
 }
 
 pi_dirent_t *fat32_stat(fat32_fs_t *fs, pi_dirent_t *directory, char *filename) {
   demand(init_p, "fat32 not initialized!");
   demand(directory->is_dir_p, "tried to use a file as a directory");
-
+  // unimplemented();
   // TODO: use `get_dirents` to read the raw dirent structures from the disk
-  unimplemented();
+  // unimplemented();
+  uint32_t n_dirents;
+  fat32_dirent_t *dirents = get_dirents(fs, directory->cluster_id, &n_dirents);
 
   // TODO: Iterate through the directory's entries and find a dirent with the
   // provided name.  Return NULL if no such dirent exists.  You can use
   // `find_dirent_with_name` if you've implemented it.
-  unimplemented();
+  // unimplemented();
+  int ret = find_dirent_with_name(dirents, n_dirents, filename);
+  if(ret == -1) return NULL;
+
+  pi_dirent_t *dirent = kmalloc(sizeof(pi_dirent_t));
+  *dirent = dirent_convert(&dirents[ret]);
+  // for (int i = 0; i < n_dirents; i++) {
+  //   // printk("real_name: %s\n", real_name);
+  //   if (find_dirent_with_name(dirents, n_dirents, filename) != -1) {
+  //     pi_dirent_t *dirent = kmalloc(sizeof(pi_dirent_t));
+  //     *dirent = dirent_convert(&dirents[i]);
+  //     return dirent;
+  //   }
+  // }
 
   // TODO: allocate enough space for the dirent, then convert
   // (`dirent_convert`) the fat32 dirent into a Pi dirent.
-  pi_dirent_t *dirent = NULL;
+  // pi_dirent_t *dirent = NULL;
   return dirent;
 }
 
@@ -316,27 +335,89 @@ pi_file_t *fat32_read(fat32_fs_t *fs, pi_dirent_t *directory, char *filename) {
   // This should be pretty similar to readdir, but simpler.
   demand(init_p, "fat32 not initialized!");
   demand(directory->is_dir_p, "tried to use a file as a directory!");
-
+  // unimplemented();
   // TODO: read the dirents of the provided directory and look for one matching the provided name
-  unimplemented();
+  // unimplemented();
 
-  // TODO: figure out the length of the cluster chain
-  unimplemented();
+  pi_dirent_t *dirent = fat32_stat(fs, directory, filename);
 
-  // TODO: allocate a buffer large enough to hold the whole file
-  unimplemented();
+  uint32_t chain_length = get_cluster_chain_length(fs, dirent->cluster_id);
 
-  // TODO: read in the whole file (if it's not empty)
-  unimplemented();
+  char *data = kmalloc(dirent->nbytes);
+  read_cluster_chain(fs, dirent->cluster_id, data);
 
-  // TODO: fill the pi_file_t
   pi_file_t *file = kmalloc(sizeof(pi_file_t));
   *file = (pi_file_t) {
-    .data = NULL,
-    .n_data = 0,
-    .n_alloc = 0,
+    .data = data,
+    .n_data = dirent->nbytes,
+    .n_alloc = chain_length * boot_sector.bytes_per_sec * boot_sector.sec_per_cluster,
   };
   return file;
+
+  // uint32_t n_dirents;
+  // fat32_dirent_t *dirents = get_dirents(fs, directory->cluster_id, &n_dirents);
+  // uint32_t matching_dirent_idx = -1;
+  // for (int i = 0; i < n_dirents; i++) {
+  //   int cmp_equal = 1;
+  //   for (int j = 0; j < 8; j++) {
+  //     if (dirents[i].filename[j] == 0) {
+  //       break;
+  //     }
+  //     if (dirents[i].filename[j] != filename[j]) {
+  //       cmp_equal = 0;
+  //       break;
+  //     }
+  //   }
+  //   for (int j = 8; j < 11; j++) {
+  //     if (dirents[i].filename[j] == 0) {
+  //       break;
+  //     }
+  //     if (dirents[i].filename[j] != filename[j+1]) {
+  //       cmp_equal = 0;
+  //       break;
+  //     }
+  //   }
+  //   // printk("real_name: %s\n", real_name);
+  //   if (cmp_equal) {
+  //     matching_dirent_idx = i;
+  //     break;
+  //   }
+  // }
+  // if (matching_dirent_idx == -1) {
+  //   return NULL;
+  // }
+
+
+  // // TODO: figure out the length of the cluster chain
+  // // unimplemented();
+  // unsigned cluster_start = dirents[matching_dirent_idx].hi_start << 16 | dirents[matching_dirent_idx].lo_start;
+  // uint32_t n_clusters = get_cluster_chain_length(fs, cluster_start);
+
+  // // TODO: allocate a buffer large enough to hold the whole directory
+  // // unimplemented();
+  // uint32_t nbytes = n_clusters * fs->sectors_per_cluster * boot_sector.bytes_per_sec;
+  // uint8_t *data = kmalloc(nbytes);
+
+  // // TODO: read in the whole directory (see `read_cluster_chain`)
+  // // unimplemented();
+  // // nbytes=53248
+  // read_cluster_chain(fs, cluster_start, data);
+
+
+  // // // TODO: allocate a buffer large enough to hold the whole file
+  // // unimplemented();
+
+  // // // TODO: read in the whole file (if it's not empty)
+  // // unimplemented();
+
+  // // TODO: fill the pi_file_t
+  // pi_file_t *file = kmalloc(sizeof(pi_file_t));
+  // *file = (pi_file_t) {
+  //   .data = data,
+  //   .n_data = nbytes,
+  //   .n_alloc = nbytes,
+  // };
+  // return file;
 }
 
 /******************************************************************************
